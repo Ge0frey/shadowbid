@@ -1,0 +1,76 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+target/
+dist/
+.next/
+out/
+
+# Anchor/Solana
+.anchor/
+test-ledger/
+*.so
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vercel
+.vercel
+
+# Debug
+.pnpm-debug.log*
+
+# Local Netlify folder
+.netlify
+
+# Keypairs (never commit private keys!)
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!tailwind.config.json
+!postcss.config.json
+!next.config.json
+!Anchor.toml
+!app/src/lib/idl/*.json
+
+# Yarn
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+.next
