@@ -1,0 +1,1315 @@
+{
+  "address": "GGanQwYdzturA2hMuPbR69toMaiHPaGox86YifLjMVzQ",
+  "metadata": {
+    "name": "shadowbid",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Sealed-bid auction protocol with Inco Lightning confidential computing"
+  },
+  "docs": [
+    "ShadowBid: A sealed-bid auction protocol with Inco Lightning confidential computing",
+    "",
+    "Auction Lifecycle:",
+    "1. Seller creates auction with reserve price and duration",
+    "2. Bidders place encrypted bids (invisible to everyone)",
+    "3. After end time, anyone can close bidding",
+    "4. Winner determination: compare encrypted bids using e_ge and e_select",
+    "5. Winner is granted decryption permission",
+    "6. Winner reveals bid, pays, and settles auction"
+  ],
+  "instructions": [
+    {
+      "name": "cancel_auction",
+      "docs": [
+        "Cancels an auction (seller only)",
+        "",
+        "Can only cancel if no winner has been determined"
+      ],
+      "discriminator": [
+        156,
+        43,
+        197,
+        110,
+        218,
+        105,
+        143,
+        182
+      ],
+      "accounts": [
+        {
+          "name": "seller",
+          "docs": [
+            "The seller cancelling the auction"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "auction",
+          "docs": [
+            "The auction to cancel"
+          ],
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "reason",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "close_bidding",
+      "docs": [
+        "Closes bidding after the auction end time",
+        "",
+        "Permissionless - anyone can call this after end_time"
+      ],
+      "discriminator": [
+        219,
+        203,
+        190,
+        31,
+        25,
+        53,
+        75,
+        228
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "docs": [
+            "Anyone can close bidding after the end time (permissionless)"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "auction",
+          "docs": [
+            "The auction to close"
+          ],
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_auction",
+      "docs": [
+        "Creates a new sealed-bid auction",
+        "",
+        "# Arguments",
+        "* `params` - Auction parameters (title, description, reserve_price, duration)"
+      ],
+      "discriminator": [
+        234,
+        6,
+        201,
+        246,
+        47,
+        219,
+        176,
+        107
+      ],
+      "accounts": [
+        {
+          "name": "seller",
+          "docs": [
+            "The seller creating this auction"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "auction",
+          "docs": [
+            "The auction account to be created"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "seller"
+              },
+              {
+                "kind": "arg",
+                "path": "params.auction_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "docs": [
+            "System program for account creation"
+          ],
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "params",
+          "type": {
+            "defined": {
+              "name": "CreateAuctionParams"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "determine_winner",
+      "docs": [
+        "Processes one bid for winner determination",
+        "",
+        "Uses encrypted comparison (e_ge) and selection (e_select)",
+        "to update the highest bid without revealing any bid amounts.",
+        "Must be called once per bid."
+      ],
+      "discriminator": [
+        73,
+        160,
+        161,
+        62,
+        27,
+        247,
+        166,
+        31
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "docs": [
+            "Anyone can call this to help process bids (permissionless)"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "auction",
+          "docs": [
+            "The auction being processed"
+          ],
+          "writable": true
+        },
+        {
+          "name": "bid",
+          "docs": [
+            "The bid to compare against current highest"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  105,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction"
+              },
+              {
+                "kind": "account",
+                "path": "bid.bidder",
+                "account": "Bid"
+              }
+            ]
+          }
+        },
+        {
+          "name": "inco_lightning_program",
+          "docs": [
+            "Inco Lightning program for encrypted operations"
+          ],
+          "address": "5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "finalize_winner",
+      "docs": [
+        "Finalizes the winner after all bids are processed",
+        "",
+        "Grants decryption permission to the winner via Inco's allow()"
+      ],
+      "discriminator": [
+        146,
+        228,
+        187,
+        253,
+        58,
+        192,
+        194,
+        177
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "docs": [
+            "Anyone can finalize after all bids processed (permissionless)"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "auction",
+          "docs": [
+            "The auction to finalize"
+          ],
+          "writable": true
+        },
+        {
+          "name": "allowance_account",
+          "docs": [
+            "Seeds: [handle_bytes, winner_address]"
+          ],
+          "writable": true
+        },
+        {
+          "name": "winner_address"
+        },
+        {
+          "name": "inco_lightning_program",
+          "docs": [
+            "Inco Lightning program for allowance"
+          ],
+          "address": "5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj"
+        },
+        {
+          "name": "system_program",
+          "docs": [
+            "System program for account creation"
+          ],
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "place_bid",
+      "docs": [
+        "Places or updates an encrypted bid",
+        "",
+        "# Arguments",
+        "* `ciphertext` - The encrypted bid amount (encrypted client-side with Inco SDK)"
+      ],
+      "discriminator": [
+        238,
+        77,
+        148,
+        91,
+        200,
+        151,
+        92,
+        146
+      ],
+      "accounts": [
+        {
+          "name": "bidder",
+          "docs": [
+            "The bidder placing the bid"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "auction",
+          "docs": [
+            "The auction to bid on"
+          ],
+          "writable": true
+        },
+        {
+          "name": "bid",
+          "docs": [
+            "The bid account (created or updated)"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  105,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction"
+              },
+              {
+                "kind": "account",
+                "path": "bidder"
+              }
+            ]
+          }
+        },
+        {
+          "name": "inco_lightning_program",
+          "docs": [
+            "Inco Lightning program for encrypted operations"
+          ],
+          "address": "5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj"
+        },
+        {
+          "name": "system_program",
+          "docs": [
+            "System program"
+          ],
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "ciphertext",
+          "type": "bytes"
+        }
+      ]
+    },
+    {
+      "name": "settle_auction",
+      "docs": [
+        "Settles the auction with attested decryption proof",
+        "",
+        "# Arguments",
+        "* `handle_bytes` - The winning bid handle as bytes",
+        "* `plaintext_bytes` - The decrypted winning amount",
+        "",
+        "Requires Ed25519 signature verification instruction in the transaction"
+      ],
+      "discriminator": [
+        246,
+        196,
+        183,
+        98,
+        222,
+        139,
+        46,
+        133
+      ],
+      "accounts": [
+        {
+          "name": "winner",
+          "docs": [
+            "The winner settling the auction"
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "auction",
+          "docs": [
+            "The auction to settle"
+          ],
+          "writable": true
+        },
+        {
+          "name": "seller",
+          "docs": [
+            "The seller receiving payment"
+          ],
+          "writable": true
+        },
+        {
+          "name": "instructions",
+          "docs": [
+            "Instructions sysvar for Ed25519 signature verification"
+          ],
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "inco_lightning_program",
+          "docs": [
+            "Inco Lightning program for attestation verification"
+          ],
+          "address": "5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj"
+        },
+        {
+          "name": "system_program",
+          "docs": [
+            "System program for transfers"
+          ],
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "handle_bytes",
+          "type": "bytes"
+        },
+        {
+          "name": "plaintext_bytes",
+          "type": "bytes"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Auction",
+      "discriminator": [
+        218,
+        94,
+        247,
+        242,
+        126,
+        233,
+        131,
+        81
+      ]
+    },
+    {
+      "name": "Bid",
+      "discriminator": [
+        143,
+        246,
+        48,
+        245,
+        42,
+        145,
+        180,
+        88
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "AuctionCancelled",
+      "discriminator": [
+        22,
+        32,
+        51,
+        83,
+        215,
+        194,
+        171,
+        209
+      ]
+    },
+    {
+      "name": "AuctionCreated",
+      "discriminator": [
+        133,
+        190,
+        194,
+        65,
+        172,
+        0,
+        70,
+        178
+      ]
+    },
+    {
+      "name": "AuctionSettled",
+      "discriminator": [
+        61,
+        151,
+        131,
+        170,
+        95,
+        203,
+        219,
+        147
+      ]
+    },
+    {
+      "name": "BidPlaced",
+      "discriminator": [
+        135,
+        53,
+        176,
+        83,
+        193,
+        69,
+        108,
+        61
+      ]
+    },
+    {
+      "name": "BidProcessed",
+      "discriminator": [
+        233,
+        191,
+        31,
+        207,
+        59,
+        140,
+        146,
+        120
+      ]
+    },
+    {
+      "name": "BidUpdated",
+      "discriminator": [
+        70,
+        153,
+        25,
+        253,
+        224,
+        94,
+        198,
+        148
+      ]
+    },
+    {
+      "name": "BiddingClosed",
+      "discriminator": [
+        31,
+        40,
+        34,
+        146,
+        5,
+        143,
+        254,
+        187
+      ]
+    },
+    {
+      "name": "WinnerDetermined",
+      "discriminator": [
+        24,
+        94,
+        250,
+        188,
+        62,
+        159,
+        205,
+        240
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "DurationTooShort",
+      "msg": "Auction duration is too short (minimum 1 hour)"
+    },
+    {
+      "code": 6001,
+      "name": "DurationTooLong",
+      "msg": "Auction duration is too long (maximum 7 days)"
+    },
+    {
+      "code": 6002,
+      "name": "AuctionNotStarted",
+      "msg": "Auction has not started yet"
+    },
+    {
+      "code": 6003,
+      "name": "BiddingNotEnded",
+      "msg": "Bidding period has not ended yet"
+    },
+    {
+      "code": 6004,
+      "name": "BiddingEnded",
+      "msg": "Bidding period has ended"
+    },
+    {
+      "code": 6005,
+      "name": "AuctionNotOpen",
+      "msg": "Auction is not open for bidding"
+    },
+    {
+      "code": 6006,
+      "name": "AuctionNotClosed",
+      "msg": "Auction is not in closed state"
+    },
+    {
+      "code": 6007,
+      "name": "WinnerNotDetermined",
+      "msg": "Auction is not in winner determined state"
+    },
+    {
+      "code": 6008,
+      "name": "AuctionAlreadySettled",
+      "msg": "Auction has already been settled"
+    },
+    {
+      "code": 6009,
+      "name": "AuctionCancelled",
+      "msg": "Auction has been cancelled"
+    },
+    {
+      "code": 6010,
+      "name": "NoBidsPlaced",
+      "msg": "No bids have been placed on this auction"
+    },
+    {
+      "code": 6011,
+      "name": "NotSeller",
+      "msg": "Only the seller can perform this action"
+    },
+    {
+      "code": 6012,
+      "name": "NotWinner",
+      "msg": "Only the winner can perform this action"
+    },
+    {
+      "code": 6013,
+      "name": "SellerCannotBid",
+      "msg": "Seller cannot bid on their own auction"
+    },
+    {
+      "code": 6014,
+      "name": "BidAuctionMismatch",
+      "msg": "Bid does not belong to this auction"
+    },
+    {
+      "code": 6015,
+      "name": "BidAlreadyProcessed",
+      "msg": "Bid has already been processed in winner determination"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidBidCiphertext",
+      "msg": "Invalid encrypted bid data"
+    },
+    {
+      "code": 6017,
+      "name": "TitleTooLong",
+      "msg": "Title is too long (maximum 64 bytes)"
+    },
+    {
+      "code": 6018,
+      "name": "DescriptionTooLong",
+      "msg": "Description is too long (maximum 256 bytes)"
+    },
+    {
+      "code": 6019,
+      "name": "InvalidReservePrice",
+      "msg": "Reserve price must be greater than zero"
+    },
+    {
+      "code": 6020,
+      "name": "EncryptionFailed",
+      "msg": "Failed to create encrypted handle"
+    },
+    {
+      "code": 6021,
+      "name": "ComparisonFailed",
+      "msg": "Failed to compare encrypted values"
+    },
+    {
+      "code": 6022,
+      "name": "AttestationVerificationFailed",
+      "msg": "Failed to verify attestation signature"
+    },
+    {
+      "code": 6023,
+      "name": "InvalidDecryptionProof",
+      "msg": "Invalid decryption proof"
+    },
+    {
+      "code": 6024,
+      "name": "WinnerNotSet",
+      "msg": "Winner has not been set"
+    },
+    {
+      "code": 6025,
+      "name": "InsufficientRemainingAccounts",
+      "msg": "Insufficient remaining accounts for allowance"
+    }
+  ],
+  "types": [
+    {
+      "name": "Auction",
+      "docs": [
+        "Main auction account storing all auction metadata and state"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "seller",
+            "docs": [
+              "The seller who created this auction"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "item_mint",
+            "docs": [
+              "Optional: NFT mint being auctioned (for NFT auctions)"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "title",
+            "docs": [
+              "Auction title (human-readable)"
+            ],
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          },
+          {
+            "name": "description",
+            "docs": [
+              "Auction description"
+            ],
+            "type": {
+              "array": [
+                "u8",
+                256
+              ]
+            }
+          },
+          {
+            "name": "reserve_price",
+            "docs": [
+              "Minimum acceptable bid amount (public reserve price in lamports)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "start_time",
+            "docs": [
+              "Unix timestamp when the auction starts"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "end_time",
+            "docs": [
+              "Unix timestamp when bidding ends"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "state",
+            "docs": [
+              "Current state of the auction"
+            ],
+            "type": {
+              "defined": {
+                "name": "AuctionState"
+              }
+            }
+          },
+          {
+            "name": "bid_count",
+            "docs": [
+              "Total number of bids placed"
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "bids_processed",
+            "docs": [
+              "Number of bids processed during winner determination"
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "highest_bid_handle",
+            "docs": [
+              "Handle to the current highest bid (encrypted Euint128)",
+              "This is updated during winner determination using e_select"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "current_leader",
+            "docs": [
+              "Public key of the current leading bidder",
+              "Updated alongside highest_bid_handle during e_select"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "winner",
+            "docs": [
+              "Final winner after all bids processed (set during finalize)"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "winning_amount",
+            "docs": [
+              "The winning bid amount (revealed only after settlement)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "auction_id",
+            "docs": [
+              "Unique auction ID (used in PDA derivation)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "Bump seed for PDA"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AuctionCancelled",
+      "docs": [
+        "Emitted when auction is cancelled"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction",
+            "docs": [
+              "The auction's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "seller",
+            "docs": [
+              "The seller's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "reason",
+            "docs": [
+              "Reason for cancellation"
+            ],
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "docs": [
+              "Unix timestamp when auction was cancelled"
+            ],
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AuctionCreated",
+      "docs": [
+        "Emitted when a new auction is created"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction",
+            "docs": [
+              "The auction's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "seller",
+            "docs": [
+              "The seller's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "title",
+            "docs": [
+              "Auction title"
+            ],
+            "type": "string"
+          },
+          {
+            "name": "reserve_price",
+            "docs": [
+              "Reserve price in lamports"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "start_time",
+            "docs": [
+              "Unix timestamp when bidding starts"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "end_time",
+            "docs": [
+              "Unix timestamp when bidding ends"
+            ],
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AuctionSettled",
+      "docs": [
+        "Emitted when auction is settled"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction",
+            "docs": [
+              "The auction's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "winner",
+            "docs": [
+              "The winner's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "winning_amount",
+            "docs": [
+              "The winning bid amount (revealed)"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "docs": [
+              "Unix timestamp when auction was settled"
+            ],
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AuctionState",
+      "docs": [
+        "Auction state machine"
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "Closed"
+          },
+          {
+            "name": "WinnerDetermined"
+          },
+          {
+            "name": "Settled"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Bid",
+      "docs": [
+        "Individual bid account - one per bidder per auction",
+        "Stores the encrypted bid amount as an Inco handle"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction",
+            "docs": [
+              "The auction this bid belongs to"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "bidder",
+            "docs": [
+              "The bidder's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "encrypted_amount",
+            "docs": [
+              "Encrypted bid amount (Euint128 handle from Inco Lightning)",
+              "This is a 128-bit reference to the encrypted value stored in TEE"
+            ],
+            "type": "u128"
+          },
+          {
+            "name": "created_at",
+            "docs": [
+              "Unix timestamp when the bid was first placed"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "updated_at",
+            "docs": [
+              "Unix timestamp when the bid was last updated"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "processed",
+            "docs": [
+              "Whether this bid has been processed during winner determination",
+              "Prevents double-counting in the comparison loop"
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "docs": [
+              "Bump seed for PDA derivation"
+            ],
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BidPlaced",
+      "docs": [
+        "Emitted when a bid is placed"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction",
+            "docs": [
+              "The auction's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "bidder",
+            "docs": [
+              "The bidder's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "bid_number",
+            "docs": [
+              "The bid number (1-indexed)"
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "timestamp",
+            "docs": [
+              "Unix timestamp when bid was placed"
+            ],
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BidProcessed",
+      "docs": [
+        "Emitted when a bid is processed during winner determination"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction",
+            "docs": [
+              "The auction's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "bidder",
+            "docs": [
+              "The bidder whose bid was processed"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "bids_processed",
+            "docs": [
+              "Number of bids processed so far"
+            ],
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BidUpdated",
+      "docs": [
+        "Emitted when a bid is updated"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction",
+            "docs": [
+              "The auction's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "bidder",
+            "docs": [
+              "The bidder's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "docs": [
+              "Unix timestamp when bid was updated"
+            ],
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BiddingClosed",
+      "docs": [
+        "Emitted when bidding period closes"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction",
+            "docs": [
+              "The auction's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "total_bids",
+            "docs": [
+              "Total number of bids"
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "timestamp",
+            "docs": [
+              "Unix timestamp when bidding closed"
+            ],
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "CreateAuctionParams",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction_id",
+            "docs": [
+              "Unique identifier for this auction"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "title",
+            "docs": [
+              "Auction title (max 64 bytes)"
+            ],
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "docs": [
+              "Auction description (max 256 bytes)"
+            ],
+            "type": "string"
+          },
+          {
+            "name": "reserve_price",
+            "docs": [
+              "Minimum bid amount in lamports"
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "duration",
+            "docs": [
+              "Duration of the auction in seconds"
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "item_mint",
+            "docs": [
+              "Optional: NFT mint address being auctioned"
+            ],
+            "type": {
+              "option": "pubkey"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "WinnerDetermined",
+      "docs": [
+        "Emitted when winner is determined"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction",
+            "docs": [
+              "The auction's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "winner",
+            "docs": [
+              "The winner's public key"
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "timestamp",
+            "docs": [
+              "Unix timestamp when winner was determined"
+            ],
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}
