@@ -536,6 +536,21 @@ npm run copy-idl
    wallet = "~/.config/solana/shadowbid.json"
    ```
 
+4. **Configure Helius RPC (Recommended)**
+   
+   ShadowBid uses [Helius](https://www.helius.dev/) as the default RPC provider for faster and more reliable transactions.
+   
+   ```bash
+   # Copy the example env file
+   cp app/.env.example app/.env.local
+   
+   # Edit .env.local with your Helius API key
+   NEXT_PUBLIC_HELIUS_API_KEY=your-helius-api-key
+   NEXT_PUBLIC_SOLANA_RPC_URL=https://devnet.helius-rpc.com/?api-key=your-helius-api-key
+   ```
+   
+   > **Note:** Get your free Helius API key at [helius.dev](https://www.helius.dev/). The app will fall back to the public Solana devnet RPC if no Helius key is configured.
+
 ### Deployment
 
 ```bash
@@ -695,6 +710,7 @@ Settles auction with attested decryption proof.
 | Layer | Technology | Purpose |
 |-------|------------|---------|
 | Blockchain | Solana (Devnet) | Settlement and state storage |
+| RPC Provider | Helius | Fast, reliable RPC with enhanced rate limits |
 | Confidential Computing | Inco Lightning | Encrypted operations |
 | Smart Contracts | Anchor 0.31.1 | Program framework |
 | Frontend | Next.js 14 | Web application |
