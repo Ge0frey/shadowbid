@@ -64,7 +64,7 @@ export default function MyBidsPage() {
               auctionTitle: bytesToString(auction.account.title as number[]),
               auctionEndTime: Number(auction.account.endTime),
               auctionState: auction.account.state as AuctionState,
-              bidTime: Number(bidAccount.timestamp),
+              bidTime: Number(bidAccount.createdAt || bidAccount.updatedAt || 0),
               isWinner,
             });
           }
@@ -184,7 +184,9 @@ const BidCard: FC<{ bid: BidData }> = ({ bid }) => {
                   Sealed Bid
                 </span>
                 <span>
-                  Bid placed: {new Date(bid.bidTime * 1000).toLocaleDateString()}
+                  Bid placed: {bid.bidTime > 0 
+                    ? new Date(bid.bidTime * 1000).toLocaleDateString() 
+                    : "Recently"}
                 </span>
               </div>
             </div>
