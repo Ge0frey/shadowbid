@@ -160,7 +160,7 @@ export const CreateAuctionForm: FC = () => {
           {/* Duration */}
           <div>
             <label htmlFor="duration" className="label">
-              Duration (hours)
+              Duration
             </label>
             <select
               id="duration"
@@ -168,6 +168,7 @@ export const CreateAuctionForm: FC = () => {
               onChange={(e) => setDuration(e.target.value)}
               className="input"
             >
+              <option value="0.0167">1 minute </option>
               <option value="1">1 hour</option>
               <option value="6">6 hours</option>
               <option value="12">12 hours</option>
