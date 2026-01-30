@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
@@ -12,11 +12,13 @@ import {
   Shield,
   AlertCircle,
   CheckCircle,
-  Loader2
+  Loader2,
+  RefreshCw
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/Card";
 import { Countdown } from "@/components/ui/Countdown";
 import { BidForm } from "@/components/auction/BidForm";
+import { AuctionActions } from "@/components/auction/AuctionActions";
 import { getReadOnlyProgram, bytesToString } from "@/lib/program";
 import { 
   formatSol, 
@@ -25,7 +27,6 @@ import {
   AuctionState 
 } from "@/lib/constants";
 import { shortenAddress, formatDate } from "@/lib/utils";
-import { formatHandle } from "@/lib/encryption";
 
 interface AuctionData {
   seller: PublicKey;
@@ -100,11 +101,35 @@ export default function AuctionDetailPage() {
     }
   }, [auctionId, connection]);
 
-  const refreshAuction = () => {
-    // Trigger re-fetch
-    setLoading(true);
-    // The useEffect will re-run
-  };
+  const refreshAuction = useCallback(async () => {
+    try {
+      const program = getReadOnlyProgram(connection);
+      if (!program) return;
+
+      const auctionPubkey = new PublicKey(auctionId);
+      const auctionAccount = await program.account.auction.fetch(auctionPubkey);
+
+      setAuction({
+        seller: auctionAccount.seller,
+        itemMint: auctionAccount.itemMint,
+        title: bytesToString(auctionAccount.title as number[]),
+        description: bytesToString(auctionAccount.description as number[]),
+        reservePrice: BigInt(auctionAccount.reservePrice.toString()),
+        startTime: Number(auctionAccount.startTime),
+        endTime: Number(auctionAccount.endTime),
+        state: auctionAccount.state as AuctionState,
+        bidCount: auctionAccount.bidCount,
+        bidsProcessed: auctionAccount.bidsProcessed,
+        highestBidHandle: BigInt(auctionAccount.highestBidHandle.toString()),
+        currentLeader: auctionAccount.currentLeader,
+        winner: auctionAccount.winner,
+        winningAmount: BigInt(auctionAccount.winningAmount.toString()),
+        auctionId: BigInt(auctionAccount.auctionId.toString()),
+      });
+    } catch (err: any) {
+      console.error("Refresh auction error:", err);
+    }
+  }, [auctionId, connection]);
 
   if (loading) {
     return (
@@ -247,10 +272,10 @@ export default function AuctionDetailPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-2">
                     <span className="text-midnight-400">Highest Bid Handle</span>
-                    <span className="encrypted-value">
-                      {formatHandle(auction.highestBidHandle)}
+                    <span className="encrypted-value text-xs break-all font-mono bg-midnight-900/50 p-2 rounded">
+                      {auction.highestBidHandle.toString()}
                     </span>
                   </div>
                   {auction.currentLeader.toBase58() !== PublicKey.default.toBase58() && (
@@ -275,6 +300,15 @@ export default function AuctionDetailPage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
+          {/* Refresh Button */}
+          <button
+            onClick={refreshAuction}
+            className="btn-secondary w-full flex items-center justify-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Refresh Status
+          </button>
+
           {/* Bid Form (if auction is active) */}
           {canBid && (
             <BidForm
@@ -284,41 +318,12 @@ export default function AuctionDetailPage() {
             />
           )}
 
-          {/* Winner Actions */}
-          {isWinnerDetermined && isWinner && (
-            <Card className="border-green-700/50">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-green-400">
-                  <CheckCircle className="w-5 h-5" />
-                  You Won!
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-midnight-300 mb-4">
-                  Congratulations! You have the highest bid. Click below to reveal
-                  your bid and complete the payment.
-                </p>
-                <button className="btn-primary w-full">
-                  Reveal & Settle
-                </button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Auction Closed Info */}
-          {isClosed && (
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <Lock className="w-12 h-12 mx-auto text-yellow-400 mb-4" />
-                  <h3 className="font-semibold text-white mb-2">Bidding Closed</h3>
-                  <p className="text-midnight-400 text-sm">
-                    Processing {auction.bidCount} encrypted bids to determine the winner.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Auction Actions (close, determine winner, finalize, settle) */}
+          <AuctionActions
+            auctionPubkey={new PublicKey(auctionId)}
+            auction={auction}
+            onActionComplete={refreshAuction}
+          />
 
           {/* Settled Info */}
           {isSettled && (
