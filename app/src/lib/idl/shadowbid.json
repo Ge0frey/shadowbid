@@ -1032,8 +1032,7 @@
     {
       "name": "Bid",
       "docs": [
-        "Individual bid account - one per bidder per auction",
-        "Stores the encrypted bid amount as an Inco handle"
+        "Individual bid account - one per bidder per auction"
       ],
       "type": {
         "kind": "struct",
