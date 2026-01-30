@@ -1,6 +1,6 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import Link from "next/link";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { 
@@ -11,12 +11,36 @@ import {
   ArrowRight, 
   Plus,
   Users,
-  TrendingUp
+  TrendingUp,
+  Loader2
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
+import { AuctionCard } from "@/components/auction/AuctionCard";
+import { useAuctions } from "@/hooks/useAuctions";
+import { formatSol } from "@/lib/constants";
 
 export default function HomePage() {
   const { connected } = useWallet();
+  const { auctions, loading, error, refetch } = useAuctions();
+
+  // Calculate stats from auctions
+  const stats = useMemo(() => {
+    const activeAuctions = auctions.filter(a => "open" in a.state);
+    const totalBids = auctions.reduce((sum, a) => sum + a.bidCount, 0);
+    const totalVolume = auctions.reduce((sum, a) => sum + a.winningAmount, BigInt(0));
+    
+    return {
+      activeCount: activeAuctions.length,
+      totalBids,
+      totalVolume,
+    };
+  }, [auctions]);
+
+  // Filter for active auctions only
+  const activeAuctions = useMemo(() => {
+    const now = Math.floor(Date.now() / 1000);
+    return auctions.filter(a => "open" in a.state && a.endTime > now);
+  }, [auctions]);
 
   return (
     <div className="min-h-screen">
@@ -112,17 +136,17 @@ export default function HomePage() {
             />
             <StatCard
               icon={<Users className="w-6 h-6 text-shadow-400" />}
-              value="0"
+              value={stats.activeCount.toString()}
               label="Active Auctions"
             />
             <StatCard
               icon={<Lock className="w-6 h-6 text-shadow-400" />}
-              value="0"
+              value={stats.totalBids.toString()}
               label="Sealed Bids"
             />
             <StatCard
               icon={<TrendingUp className="w-6 h-6 text-shadow-400" />}
-              value="0 SOL"
+              value={`${formatSol(stats.totalVolume)} SOL`}
               label="Total Volume"
             />
           </div>
@@ -134,33 +158,66 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-bold text-white">Active Auctions</h2>
-            <Link
-              href="/auctions"
-              className="text-shadow-400 hover:text-shadow-300 flex items-center gap-1 text-sm"
-            >
-              View All
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          {/* Placeholder for auctions */}
-          <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-midnight-800 flex items-center justify-center">
-              <Lock className="w-8 h-8 text-midnight-500" />
-            </div>
-            <h3 className="text-xl font-semibold text-midnight-300 mb-2">
-              No Active Auctions
-            </h3>
-            <p className="text-midnight-500 mb-6">
-              Be the first to create a sealed-bid auction!
-            </p>
-            {connected && (
-              <Link href="/auction/create" className="btn-primary inline-flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                Create Auction
-              </Link>
+            {auctions.length > 0 && (
+              <button
+                onClick={refetch}
+                className="text-shadow-400 hover:text-shadow-300 flex items-center gap-1 text-sm"
+              >
+                Refresh
+              </button>
             )}
           </div>
+
+          {/* Auctions Grid */}
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 className="w-8 h-8 animate-spin text-shadow-400" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-16">
+              <p className="text-red-400 mb-4">{error}</p>
+              <button onClick={refetch} className="btn-secondary">
+                Try Again
+              </button>
+            </div>
+          ) : activeAuctions.length === 0 ? (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-midnight-800 flex items-center justify-center">
+                <Lock className="w-8 h-8 text-midnight-500" />
+              </div>
+              <h3 className="text-xl font-semibold text-midnight-300 mb-2">
+                No Active Auctions
+              </h3>
+              <p className="text-midnight-500 mb-6">
+                Be the first to create a sealed-bid auction!
+              </p>
+              {connected && (
+                <Link href="/auction/create" className="btn-primary inline-flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  Create Auction
+                </Link>
+              )}
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {activeAuctions.slice(0, 6).map((auction) => (
+                <AuctionCard key={auction.publicKey.toBase58()} auction={auction} />
+              ))}
+            </div>
+          )}
+
+          {/* Show all auctions link if there are more */}
+          {activeAuctions.length > 6 && (
+            <div className="text-center mt-8">
+              <Link
+                href="/my-auctions"
+                className="text-shadow-400 hover:text-shadow-300 flex items-center justify-center gap-1"
+              >
+                View All {activeAuctions.length} Auctions
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
