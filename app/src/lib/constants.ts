@@ -18,11 +18,12 @@ export const BID_SEED = Buffer.from("bid");
 
 // Network Configuration
 export const SOLANA_NETWORK = "devnet";
-export const SOLANA_RPC_URL = "https://api.devnet.solana.com";
+export const SOLANA_RPC_URL = 
+  process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com";
 
 
 // Auction Constants
-export const MIN_AUCTION_DURATION = 3600; // 1 hour in seconds
+export const MIN_AUCTION_DURATION = 60; // 60 seconds for testing
 export const MAX_AUCTION_DURATION = 604800; // 7 days in seconds
 export const DEFAULT_AUCTION_DURATION = 86400; // 24 hours in seconds
 
