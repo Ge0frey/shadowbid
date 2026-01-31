@@ -12,10 +12,6 @@ use crate::state::{Auction, AuctionState};
 /// 2. Sets the winner from current_leader
 /// 3. Grants decryption permission to the winner via Inco's allow()
 /// 4. Transitions auction to WinnerDetermined state
-/// 
-/// remaining_accounts:
-/// [0] allowance_account (mut) - PDA for granting decrypt access
-/// [1] winner_address (readonly) - The winner's public key
 #[derive(Accounts)]
 pub struct FinalizeWinner<'info> {
     /// Anyone can finalize after all bids processed (permissionless)

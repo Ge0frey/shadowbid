@@ -20,7 +20,7 @@ export const CreateAuctionForm: FC = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [reservePrice, setReservePrice] = useState("");
-  const [duration, setDuration] = useState("24"); // hours
+  const [duration, setDuration] = useState("1440"); // minutes (24 hours default)
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -57,7 +57,7 @@ export const CreateAuctionForm: FC = () => {
 
       // Parse values
       const reservePriceLamports = parseSol(parseFloat(reservePrice));
-      const durationSeconds = new BN(Math.floor(parseFloat(duration) * 3600)); // Convert hours to seconds
+      const durationSeconds = new BN(parseInt(duration) * 60); // Convert minutes to seconds
 
       // Create auction
       await program.methods
@@ -168,14 +168,14 @@ export const CreateAuctionForm: FC = () => {
               onChange={(e) => setDuration(e.target.value)}
               className="input"
             >
-              <option value="0.0333">2 minutes</option>
-              <option value="1">1 hour</option>
-              <option value="6">6 hours</option>
-              <option value="12">12 hours</option>
-              <option value="24">24 hours</option>
-              <option value="48">2 days</option>
-              <option value="72">3 days</option>
-              <option value="168">7 days</option>
+              <option value="2">2 minutes</option>
+              <option value="60">1 hour</option>
+              <option value="360">6 hours</option>
+              <option value="720">12 hours</option>
+              <option value="1440">24 hours</option>
+              <option value="2880">2 days</option>
+              <option value="4320">3 days</option>
+              <option value="10080">7 days</option>
             </select>
           </div>
 

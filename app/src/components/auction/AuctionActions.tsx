@@ -73,7 +73,7 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
       if (!program) return;
 
       // Fetch all bid accounts for this auction
-      const bids = await program.account.bid.all([
+      const bids = await (program.account as any).bid.all([
         {
           memcmp: {
             offset: 8, // After discriminator
@@ -83,8 +83,8 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
       ]);
 
       const unprocessed = bids
-        .filter((b) => !b.account.processed)
-        .map((b) => ({
+        .filter((b: any) => !b.account.processed)
+        .map((b: any) => ({
           pubkey: b.publicKey,
           bidder: b.account.bidder,
           processed: b.account.processed,
@@ -230,10 +230,16 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
       const program = getProgram(connection, wallet);
       if (!program) throw new Error("Failed to load program");
 
-      // Calculate allowance PDA
+      // IMPORTANT: Fetch fresh auction data from on-chain to get the latest highestBidHandle
+      // After processing bids, e_select creates new handles, so we need the current value
+      const freshAuction = await (program.account as any).auction.fetch(auctionPubkey);
+      const freshHighestBidHandle = BigInt(freshAuction.highestBidHandle.toString());
+      const freshCurrentLeader = freshAuction.currentLeader;
+
+      // Calculate allowance PDA using fresh on-chain data
       const [allowancePda] = findAllowancePda(
-        auction.highestBidHandle,
-        auction.currentLeader
+        freshHighestBidHandle,
+        freshCurrentLeader
       );
 
       await program.methods
@@ -242,7 +248,7 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
           caller: wallet.publicKey,
           auction: auctionPubkey,
           allowanceAccount: allowancePda,
-          winnerAddress: auction.currentLeader,
+          winnerAddress: freshCurrentLeader,
           incoLightningProgram: INCO_LIGHTNING_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
         })
@@ -270,25 +276,30 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
     setActionType("settle");
 
     try {
+      const program = getProgram(connection, wallet);
+      if (!program) throw new Error("Failed to load program");
+
+      // IMPORTANT: Fetch fresh auction data from on-chain to get the correct handle
+      // This ensures we decrypt the same handle that was allowed during finalize
+      toast.loading("Fetching auction data...", { id: "settle" });
+      const freshAuction = await (program.account as any).auction.fetch(auctionPubkey);
+      const freshHighestBidHandle = BigInt(freshAuction.highestBidHandle.toString());
+
       toast.loading("Decrypting your bid...", { id: "settle" });
 
-      // Decrypt the winning bid
+      // Decrypt the winning bid using fresh handle from on-chain
       const decryptResult = await decryptWithProof(
-        auction.highestBidHandle.toString(),
+        freshHighestBidHandle.toString(),
         wallet.publicKey,
         wallet.signMessage
       );
 
       toast.loading("Verifying and settling...", { id: "settle" });
 
-      const program = getProgram(connection, wallet);
-      if (!program) throw new Error("Failed to load program");
-
       // Convert handle and plaintext to bytes
       const handleBytes = Buffer.alloc(16);
-      const handleBigInt = auction.highestBidHandle;
-      const low = handleBigInt & BigInt("0xFFFFFFFFFFFFFFFF");
-      const high = handleBigInt >> BigInt(64);
+      const low = freshHighestBidHandle & BigInt("0xFFFFFFFFFFFFFFFF");
+      const high = freshHighestBidHandle >> BigInt(64);
       handleBytes.writeBigUInt64LE(low, 0);
       handleBytes.writeBigUInt64LE(high, 8);
 
@@ -302,13 +313,13 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
       // Build transaction with Ed25519 verification instructions
       const tx = await program.methods
         .settleAuction(
-          Array.from(handleBytes),
-          Array.from(plaintextBytes)
+          handleBytes,
+          plaintextBytes
         )
         .accounts({
           winner: wallet.publicKey,
           auction: auctionPubkey,
-          seller: auction.seller,
+          seller: freshAuction.seller,
           instructions: new PublicKey("Sysvar1nstructions1111111111111111111111111"),
           incoLightningProgram: INCO_LIGHTNING_PROGRAM_ID,
           systemProgram: SystemProgram.programId,
