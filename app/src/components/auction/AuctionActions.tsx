@@ -17,6 +17,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card";
 import { getProgram, getReadOnlyProgram } from "@/lib/program";
 import { findBidPda, findAllowancePda } from "@/lib/pda";
 import { decryptWithProof } from "@/lib/encryption";
+import { handleToBuffer, plaintextToBuffer } from "@inco/solana-sdk/utils";
 import { formatSol, AuctionState, INCO_LIGHTNING_PROGRAM_ID } from "@/lib/constants";
 
 interface AuctionActionsProps {
@@ -296,25 +297,16 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
 
       toast.loading("Verifying and settling...", { id: "settle" });
 
-      // Convert handle and plaintext to bytes
-      const handleBytes = Buffer.alloc(16);
-      const low = freshHighestBidHandle & BigInt("0xFFFFFFFFFFFFFFFF");
-      const high = freshHighestBidHandle >> BigInt(64);
-      handleBytes.writeBigUInt64LE(low, 0);
-      handleBytes.writeBigUInt64LE(high, 8);
-
-      const plaintextBigInt = BigInt(decryptResult.plaintext);
-      const plaintextBytes = Buffer.alloc(16);
-      const ptLow = plaintextBigInt & BigInt("0xFFFFFFFFFFFFFFFF");
-      const ptHigh = plaintextBigInt >> BigInt(64);
-      plaintextBytes.writeBigUInt64LE(ptLow, 0);
-      plaintextBytes.writeBigUInt64LE(ptHigh, 8);
+      // Convert handle and plaintext to bytes using Inco SDK utilities
+      // The SDK returns the handle in result.handles and plaintext in result.plaintexts
+      const handleBytes = handleToBuffer(decryptResult.handle);
+      const plaintextBytes = plaintextToBuffer(decryptResult.plaintext);
 
       // Build transaction with Ed25519 verification instructions
       const tx = await program.methods
         .settleAuction(
-          handleBytes,
-          plaintextBytes
+          handleBytes as Buffer,
+          plaintextBytes as Buffer
         )
         .accounts({
           winner: wallet.publicKey,
@@ -328,7 +320,7 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
         .rpc();
 
       toast.success(
-        `Auction settled! You paid ${formatSol(plaintextBigInt)} SOL`,
+        `Auction settled! You paid ${formatSol(BigInt(decryptResult.plaintext))} SOL`,
         { id: "settle" }
       );
       onActionComplete();
