@@ -6,8 +6,8 @@ pub const AUCTION_SEED: &[u8] = b"auction";
 /// Seed for deriving Bid PDA
 pub const BID_SEED: &[u8] = b"bid";
 
-/// Minimum auction duration (60 seconds for testing)
-pub const MIN_AUCTION_DURATION: i64 = 60;
+/// Minimum auction duration (2 minutes for testing)
+pub const MIN_AUCTION_DURATION: i64 = 120;
 
 /// Maximum auction duration (7 days in seconds)
 pub const MAX_AUCTION_DURATION: i64 = 604800;

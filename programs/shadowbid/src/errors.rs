@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
 pub enum ShadowBidError {
 
     // Timing Errors
-    #[msg("Auction duration is too short (minimum 1 hour)")]
+    #[msg("Auction duration is too short (minimum 2 minutes)")]
     DurationTooShort,
 
     #[msg("Auction duration is too long (maximum 7 days)")]

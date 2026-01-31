@@ -23,7 +23,7 @@ export const SOLANA_RPC_URL =
 
 
 // Auction Constants
-export const MIN_AUCTION_DURATION = 60; // 60 seconds for testing
+export const MIN_AUCTION_DURATION = 120; // 2 minutes for testing
 export const MAX_AUCTION_DURATION = 604800; // 7 days in seconds
 export const DEFAULT_AUCTION_DURATION = 86400; // 24 hours in seconds
 

@@ -57,7 +57,7 @@ export const CreateAuctionForm: FC = () => {
 
       // Parse values
       const reservePriceLamports = parseSol(parseFloat(reservePrice));
-      const durationSeconds = new BN(parseInt(duration) * 3600); // Convert hours to seconds
+      const durationSeconds = new BN(Math.floor(parseFloat(duration) * 3600)); // Convert hours to seconds
 
       // Create auction
       await program.methods
@@ -168,7 +168,7 @@ export const CreateAuctionForm: FC = () => {
               onChange={(e) => setDuration(e.target.value)}
               className="input"
             >
-              <option value="0.0167">1 minute </option>
+              <option value="0.0333">2 minutes</option>
               <option value="1">1 hour</option>
               <option value="6">6 hours</option>
               <option value="12">12 hours</option>
