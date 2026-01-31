@@ -973,7 +973,7 @@ MIT License
 ## Acknowledgments
 
 - [Inco Network](https://inco.org) for confidential computing infrastructure
-- [Helius RPC](https://helius.dev) for the Anchor framework
+- [Helius RPC](https://helius.dev) Fast, reliable RPC with enhanced rate limits
 - [Solana Foundation](https://solana.com) for the high-performance blockchain
 - [Coral](https://coral.xyz) for the Anchor framework
 
