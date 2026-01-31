@@ -2,10 +2,6 @@ import { Program, AnchorProvider, Idl } from "@coral-xyz/anchor";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { SHADOWBID_PROGRAM_ID } from "./constants";
 
-// Import the IDL (will be generated after anchor build)
-// For now, we'll define a minimal type
-import type { Shadowbid } from "./idl/shadowbid";
-
 // The IDL will be copied here after running: anchor build
 // Then: cp target/idl/shadowbid.json app/src/lib/idl/
 let IDL: Idl | null = null;
@@ -23,7 +19,7 @@ try {
 export function getProgram(
   connection: Connection,
   wallet: any // AnchorWallet
-): Program<Shadowbid> | null {
+): Program | null {
   if (!IDL) {
     console.error("IDL not loaded");
     return null;
@@ -35,13 +31,13 @@ export function getProgram(
     AnchorProvider.defaultOptions()
   );
 
-  return new Program(IDL as Idl, provider) as unknown as Program<Shadowbid>;
+  return new Program(IDL as Idl, provider);
 }
 
 /**
  * Creates a read-only program instance (no wallet required)
  */
-export function getReadOnlyProgram(connection: Connection): Program<Shadowbid> | null {
+export function getReadOnlyProgram(connection: Connection): Program | null {
   if (!IDL) {
     console.error("IDL not loaded");
     return null;
@@ -52,10 +48,7 @@ export function getReadOnlyProgram(connection: Connection): Program<Shadowbid> |
     connection,
   };
 
-  return new Program(
-    IDL as Idl,
-    provider as any
-  ) as unknown as Program<Shadowbid>;
+  return new Program(IDL as Idl, provider as any);
 }
 
 

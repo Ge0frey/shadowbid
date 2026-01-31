@@ -4,8 +4,16 @@ import { FC, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
-import { Loader2, Lock, ArrowLeft, ExternalLink } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
+import { 
+  Loader2, 
+  Lock, 
+  ArrowLeft, 
+  ArrowRight,
+  Trophy,
+  Clock,
+  CheckCircle
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Countdown } from "@/components/ui/Countdown";
 import { getReadOnlyProgram, bytesToString } from "@/lib/program";
 import { formatSol, getAuctionStateLabel, getAuctionStateColor, AuctionState } from "@/lib/constants";
@@ -42,7 +50,7 @@ export default function MyBidsPage() {
       }
 
       // Fetch all auctions
-      const auctions = await program.account.auction.all();
+      const auctions = await (program.account as any).auction.all();
       
       // For each auction, check if user has a bid
       const userBids: BidData[] = [];
@@ -50,7 +58,7 @@ export default function MyBidsPage() {
       for (const auction of auctions) {
         try {
           const [bidPda] = findBidPda(auction.publicKey, publicKey);
-          const bidAccount = await program.account.bid.fetchNullable(bidPda);
+          const bidAccount = await (program.account as any).bid.fetchNullable(bidPda);
           
           if (bidAccount) {
             const isSettled = "settled" in auction.account.state;
@@ -93,68 +101,75 @@ export default function MyBidsPage() {
 
   if (!connected) {
     return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-2xl mx-auto text-center">
-          <Lock className="w-16 h-16 mx-auto mb-4 text-midnight-500" />
-          <h1 className="text-2xl font-bold text-white mb-4">Connect Your Wallet</h1>
-          <p className="text-midnight-400">
-            Please connect your wallet to view your bids.
-          </p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
+        <div className="w-16 h-16 rounded-full bg-surface-800 flex items-center justify-center mb-6">
+          <Lock className="w-8 h-8 text-surface-500" />
         </div>
+        <h1 className="heading-3 text-surface-100 mb-2 text-center">
+          Connect Your Wallet
+        </h1>
+        <p className="text-muted text-center max-w-md">
+          Please connect your wallet to view your bids.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <Link href="/" className="text-midnight-400 hover:text-white transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-white">My Bids</h1>
-          <p className="text-midnight-400 text-sm">View all your sealed bids across auctions</p>
+      <div className="border-b border-surface-800 bg-surface-950">
+        <div className="container mx-auto px-4 py-8">
+          <Link 
+            href="/auctions" 
+            className="inline-flex items-center gap-2 text-surface-500 hover:text-surface-200 text-sm mb-3 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Auctions
+          </Link>
+          <h1 className="heading-2 text-surface-100">My Bids</h1>
+          <p className="text-muted mt-1">
+            Track your sealed bids across all auctions
+          </p>
         </div>
       </div>
 
       {/* Content */}
-      {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-shadow-400" />
-        </div>
-      ) : error ? (
-        <div className="text-center py-16">
-          <p className="text-red-400">{error}</p>
-          <button
-            onClick={fetchMyBids}
-            className="mt-4 btn-secondary"
-          >
-            Try Again
-          </button>
-        </div>
-      ) : bids.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-midnight-800 flex items-center justify-center">
-            <Lock className="w-8 h-8 text-midnight-500" />
+      <div className="container mx-auto px-4 py-8">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 animate-spin text-accent-500 mb-4" />
+            <p className="text-muted">Loading your bids...</p>
           </div>
-          <h3 className="text-xl font-semibold text-midnight-300 mb-2">
-            No Bids Yet
-          </h3>
-          <p className="text-midnight-500 mb-6">
-            You haven&apos;t placed any bids yet. Browse active auctions to get started!
-          </p>
-          <Link href="/" className="btn-primary inline-flex items-center gap-2">
-            Browse Auctions
-          </Link>
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {bids.map((bid) => (
-            <BidCard key={bid.publicKey.toBase58()} bid={bid} />
-          ))}
-        </div>
-      )}
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <p className="text-error-400 mb-4">{error}</p>
+            <button onClick={fetchMyBids} className="btn-secondary">
+              Try Again
+            </button>
+          </div>
+        ) : bids.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-16 h-16 rounded-full bg-surface-800 flex items-center justify-center mb-6">
+              <Lock className="w-8 h-8 text-surface-500" />
+            </div>
+            <h3 className="heading-3 text-surface-200 mb-2">No Bids Yet</h3>
+            <p className="text-muted max-w-md mb-6">
+              You haven&apos;t placed any bids yet. Browse active auctions to get started!
+            </p>
+            <Link href="/auctions" className="btn-primary">
+              Browse Auctions
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {bids.map((bid) => (
+              <BidCard key={bid.publicKey.toBase58()} bid={bid} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -162,47 +177,69 @@ export default function MyBidsPage() {
 const BidCard: FC<{ bid: BidData }> = ({ bid }) => {
   const now = Math.floor(Date.now() / 1000);
   const isOpen = "open" in bid.auctionState;
+  const isSettled = "settled" in bid.auctionState;
   const isActive = isOpen && now < bid.auctionEndTime;
 
   return (
     <Link href={`/auction/${bid.auctionPubkey.toBase58()}`}>
-      <Card className="hover:border-shadow-500/50 transition-colors">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between gap-4">
+      <Card className="card-interactive">
+        <CardContent className="p-5">
+          <div className="flex items-center gap-4">
+            {/* Status Icon */}
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+              bid.isWinner 
+                ? "bg-success-900/30 text-success-400" 
+                : isActive 
+                  ? "bg-accent-900/30 text-accent-400"
+                  : "bg-surface-800 text-surface-400"
+            }`}>
+              {bid.isWinner ? (
+                <Trophy className="w-5 h-5" />
+              ) : isActive ? (
+                <Clock className="w-5 h-5" />
+              ) : (
+                <Lock className="w-5 h-5" />
+              )}
+            </div>
+
+            {/* Main Content */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-white truncate">{bid.auctionTitle}</h3>
+                <h3 className="font-medium text-surface-100 truncate">
+                  {bid.auctionTitle}
+                </h3>
                 {bid.isWinner && (
-                  <span className="bg-green-500/20 text-green-400 text-xs px-2 py-0.5 rounded-full">
-                    Winner!
+                  <span className="badge bg-success-900/50 text-success-300 border-success-700/50">
+                    Winner
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-4 text-sm text-midnight-400">
-                <span className="flex items-center gap-1">
-                  <Lock className="w-3 h-3 text-shadow-400" />
+              <div className="flex items-center gap-4 text-sm text-surface-500">
+                <span className="flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-accent-500" />
                   Sealed Bid
                 </span>
                 <span>
-                  Bid placed: {bid.bidTime > 0 
-                    ? new Date(bid.bidTime * 1000).toLocaleDateString() 
-                    : "Recently"}
+                  {bid.bidTime > 0 
+                    ? `Placed ${new Date(bid.bidTime * 1000).toLocaleDateString()}` 
+                    : "Recently placed"}
                 </span>
               </div>
             </div>
             
+            {/* Right Side */}
             <div className="flex items-center gap-4">
-              <div className="text-right">
-                <span className={`status-badge ${getAuctionStateColor(bid.auctionState)}`}>
+              <div className="text-right hidden sm:block">
+                <span className={getAuctionStateColor(bid.auctionState)}>
                   {getAuctionStateLabel(bid.auctionState)}
                 </span>
                 {isActive && (
-                  <div className="text-xs text-midnight-400 mt-1">
-                    Ends: <Countdown endTime={bid.auctionEndTime} />
+                  <div className="text-xs text-surface-500 mt-1">
+                    <Countdown endTime={bid.auctionEndTime} size="sm" showIcon={false} />
                   </div>
                 )}
               </div>
-              <ExternalLink className="w-4 h-4 text-midnight-500" />
+              <ArrowRight className="w-5 h-5 text-surface-600" />
             </div>
           </div>
         </CardContent>

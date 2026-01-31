@@ -11,7 +11,9 @@ import {
   Trophy, 
   CheckCircle, 
   Play,
-  AlertCircle
+  AlertCircle,
+  ArrowRight,
+  Clock
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card";
 import { getProgram, getReadOnlyProgram } from "@/lib/program";
@@ -232,7 +234,6 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
       if (!program) throw new Error("Failed to load program");
 
       // IMPORTANT: Fetch fresh auction data from on-chain to get the latest highestBidHandle
-      // After processing bids, e_select creates new handles, so we need the current value
       const freshAuction = await (program.account as any).auction.fetch(auctionPubkey);
       const freshHighestBidHandle = BigInt(freshAuction.highestBidHandle.toString());
       const freshCurrentLeader = freshAuction.currentLeader;
@@ -280,15 +281,14 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
       const program = getProgram(connection, wallet);
       if (!program) throw new Error("Failed to load program");
 
-      // IMPORTANT: Fetch fresh auction data from on-chain to get the correct handle
-      // This ensures we decrypt the same handle that was allowed during finalize
+      // Fetch fresh auction data
       toast.loading("Fetching auction data...", { id: "settle" });
       const freshAuction = await (program.account as any).auction.fetch(auctionPubkey);
       const freshHighestBidHandle = BigInt(freshAuction.highestBidHandle.toString());
 
       toast.loading("Decrypting your bid...", { id: "settle" });
 
-      // Decrypt the winning bid using fresh handle from on-chain
+      // Decrypt the winning bid
       const decryptResult = await decryptWithProof(
         freshHighestBidHandle.toString(),
         wallet.publicKey,
@@ -297,8 +297,7 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
 
       toast.loading("Verifying and settling...", { id: "settle" });
 
-      // Convert handle and plaintext to bytes using Inco SDK utilities
-      // The SDK returns the handle in result.handles and plaintext in result.plaintexts
+      // Convert handle and plaintext to bytes
       const handleBytes = handleToBuffer(decryptResult.handle);
       const plaintextBytes = plaintextToBuffer(decryptResult.plaintext);
 
@@ -333,229 +332,226 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
     }
   };
 
-  // Render based on auction state
+  // ==================== RENDER STATES ====================
+
+  // State: Bidding ended with bids - needs closing
   if (isOpen && hasEnded && auction.bidCount > 0) {
     return (
-      <Card className="border-yellow-700/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-yellow-400">
-            <Lock className="w-5 h-5" />
-            Bidding Period Ended
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-midnight-300 mb-4">
-            The bidding period has ended with {auction.bidCount} bid(s). 
-            Close bidding to start winner determination.
-          </p>
-          <button
-            onClick={handleCloseBidding}
-            disabled={loading}
-            className="btn-primary w-full flex items-center justify-center gap-2"
-          >
-            {loading && actionType === "close" ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Closing...
-              </>
-            ) : (
-              <>
-                <Unlock className="w-4 h-4" />
-                Close Bidding
-              </>
-            )}
-          </button>
-        </CardContent>
-      </Card>
+      <ActionCard
+        icon={Clock}
+        iconColor="text-warning-400"
+        title="Bidding Period Ended"
+        description={`The auction received ${auction.bidCount} bid${auction.bidCount > 1 ? 's' : ''}. Close bidding to begin winner determination.`}
+        borderColor="border-warning-700/30"
+      >
+        <button
+          onClick={handleCloseBidding}
+          disabled={loading}
+          className="btn-primary w-full"
+        >
+          {loading && actionType === "close" ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Closing...
+            </>
+          ) : (
+            <>
+              <Unlock className="w-4 h-4" />
+              Close Bidding
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
+        </button>
+      </ActionCard>
     );
   }
 
+  // State: Bidding ended with no bids - cancel
   if (isOpen && hasEnded && auction.bidCount === 0) {
     return (
-      <Card className="border-red-700/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-400">
-            <AlertCircle className="w-5 h-5" />
-            No Bids Received
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-midnight-300 mb-4">
-            The bidding period has ended with no bids. Close to cancel the auction.
-          </p>
-          <button
-            onClick={handleCloseBidding}
-            disabled={loading}
-            className="btn-secondary w-full flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Cancelling...
-              </>
-            ) : (
-              "Cancel Auction"
-            )}
-          </button>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (isClosed && !allBidsProcessed) {
-    return (
-      <Card className="border-blue-700/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-400">
-            <Play className="w-5 h-5" />
-            Process Bids
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-midnight-300 mb-4">
-            {auction.bidsProcessed}/{auction.bidCount} bids processed.
-            Process remaining bids to determine the winner.
-          </p>
-
-          {fetchingBids ? (
-            <div className="flex items-center justify-center py-4">
-              <Loader2 className="w-5 h-5 animate-spin text-midnight-400" />
-            </div>
+      <ActionCard
+        icon={AlertCircle}
+        iconColor="text-error-400"
+        title="No Bids Received"
+        description="The bidding period ended without any bids. Close to cancel the auction."
+        borderColor="border-error-700/30"
+      >
+        <button
+          onClick={handleCloseBidding}
+          disabled={loading}
+          className="btn-secondary w-full"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Cancelling...
+            </>
           ) : (
-            <div className="space-y-3">
-              <button
-                onClick={handleProcessAllBids}
-                disabled={loading || unprocessedBids.length === 0}
-                className="btn-primary w-full flex items-center justify-center gap-2"
-              >
-                {loading && actionType === "processAll" ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Processing All...
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4" />
-                    Process All Bids ({unprocessedBids.length})
-                  </>
-                )}
-              </button>
-
-              {unprocessedBids.length > 0 && (
-                <div className="text-xs text-midnight-500 text-center">
-                  or process one at a time:
-                </div>
-              )}
-
-              {unprocessedBids.slice(0, 3).map((bid, i) => (
-                <button
-                  key={bid.pubkey.toBase58()}
-                  onClick={() => handleDetermineWinner(bid.pubkey)}
-                  disabled={loading}
-                  className="btn-secondary w-full text-sm flex items-center justify-center gap-2"
-                >
-                  {loading && actionType === "determine" ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : null}
-                  Process Bid #{i + 1}
-                </button>
-              ))}
-            </div>
+            "Cancel Auction"
           )}
-        </CardContent>
-      </Card>
+        </button>
+      </ActionCard>
     );
   }
 
+  // State: Closed, processing bids
+  if (isClosed && !allBidsProcessed) {
+    const progress = Math.round((auction.bidsProcessed / auction.bidCount) * 100);
+    
+    return (
+      <ActionCard
+        icon={Play}
+        iconColor="text-accent-400"
+        title="Process Bids"
+        description={`${auction.bidsProcessed} of ${auction.bidCount} bids processed. Continue to determine the winner.`}
+        borderColor="border-accent-700/30"
+      >
+        {/* Progress Bar */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between text-xs text-surface-500 mb-2">
+            <span>Progress</span>
+            <span>{progress}%</span>
+          </div>
+          <div className="h-2 bg-surface-800 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-accent-500 rounded-full transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+
+        {fetchingBids ? (
+          <div className="flex items-center justify-center py-4">
+            <Loader2 className="w-5 h-5 animate-spin text-surface-400" />
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <button
+              onClick={handleProcessAllBids}
+              disabled={loading || unprocessedBids.length === 0}
+              className="btn-primary w-full"
+            >
+              {loading && actionType === "processAll" ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4" />
+                  Process All ({unprocessedBids.length} remaining)
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </ActionCard>
+    );
+  }
+
+  // State: All bids processed, ready to finalize
   if (isClosed && allBidsProcessed) {
     return (
-      <Card className="border-purple-700/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-purple-400">
-            <Trophy className="w-5 h-5" />
-            Finalize Winner
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-midnight-300 mb-4">
-            All bids processed! Finalize to confirm the winner and grant them
-            decryption permission.
-          </p>
-          <button
-            onClick={handleFinalizeWinner}
-            disabled={loading}
-            className="btn-primary w-full flex items-center justify-center gap-2"
-          >
-            {loading && actionType === "finalize" ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Finalizing...
-              </>
-            ) : (
-              <>
-                <Trophy className="w-4 h-4" />
-                Finalize Winner
-              </>
-            )}
-          </button>
-        </CardContent>
-      </Card>
+      <ActionCard
+        icon={Trophy}
+        iconColor="text-accent-400"
+        title="Finalize Winner"
+        description="All bids have been compared. Finalize to confirm the winner and grant decryption permission."
+        borderColor="border-accent-700/30"
+      >
+        <button
+          onClick={handleFinalizeWinner}
+          disabled={loading}
+          className="btn-primary w-full"
+        >
+          {loading && actionType === "finalize" ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Finalizing...
+            </>
+          ) : (
+            <>
+              <Trophy className="w-4 h-4" />
+              Confirm Winner
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
+        </button>
+      </ActionCard>
     );
   }
 
+  // State: Winner determined, is winner - can settle
   if (isWinnerDetermined && isWinner) {
     return (
-      <Card className="border-green-700/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-400">
-            <CheckCircle className="w-5 h-5" />
-            You Won!
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-midnight-300 mb-4">
-            Congratulations! You have the highest bid. Click below to reveal
-            your bid amount and complete the payment to the seller.
-          </p>
-          <button
-            onClick={handleSettleAuction}
-            disabled={loading}
-            className="btn-primary w-full flex items-center justify-center gap-2"
-          >
-            {loading && actionType === "settle" ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Settling...
-              </>
-            ) : (
-              <>
-                <CheckCircle className="w-4 h-4" />
-                Reveal & Settle
-              </>
-            )}
-          </button>
-        </CardContent>
-      </Card>
+      <ActionCard
+        icon={CheckCircle}
+        iconColor="text-success-400"
+        title="You Won!"
+        description="Congratulations! You have the highest bid. Reveal your bid and complete the payment."
+        borderColor="border-success-700/30"
+      >
+        <button
+          onClick={handleSettleAuction}
+          disabled={loading}
+          className="btn-success w-full"
+        >
+          {loading && actionType === "settle" ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Settling...
+            </>
+          ) : (
+            <>
+              <CheckCircle className="w-4 h-4" />
+              Reveal & Pay
+              <ArrowRight className="w-4 h-4" />
+            </>
+          )}
+        </button>
+      </ActionCard>
     );
   }
 
+  // State: Winner determined, not winner - waiting
   if (isWinnerDetermined && !isWinner) {
     return (
-      <Card className="border-yellow-700/50">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-yellow-400">
-            <Trophy className="w-5 h-5" />
-            Winner Determined
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-midnight-300">
-            A winner has been determined. Waiting for them to settle the auction.
-          </p>
-        </CardContent>
-      </Card>
+      <ActionCard
+        icon={Clock}
+        iconColor="text-surface-400"
+        title="Awaiting Settlement"
+        description="A winner has been determined. Waiting for them to complete the settlement."
+        borderColor="border-surface-700/30"
+      >
+        <div className="text-center py-2">
+          <Loader2 className="w-5 h-5 animate-spin text-surface-500 mx-auto" />
+        </div>
+      </ActionCard>
     );
   }
 
   return null;
 };
+
+// ==================== ACTION CARD WRAPPER ====================
+const ActionCard: FC<{
+  icon: FC<{ className?: string }>;
+  iconColor: string;
+  title: string;
+  description: string;
+  borderColor: string;
+  children: React.ReactNode;
+}> = ({ icon: Icon, iconColor, title, description, borderColor, children }) => (
+  <Card className={borderColor}>
+    <CardHeader>
+      <CardTitle className="flex items-center gap-2">
+        <Icon className={`w-5 h-5 ${iconColor}`} />
+        {title}
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className="text-surface-400 text-sm mb-4">{description}</p>
+      {children}
+    </CardContent>
+  </Card>
+);

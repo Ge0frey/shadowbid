@@ -3,8 +3,7 @@
 import { FC } from "react";
 import Link from "next/link";
 import { PublicKey } from "@solana/web3.js";
-import { Eye, Users, Lock } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../ui/Card";
+import { ArrowRight, Users, Lock, Clock } from "lucide-react";
 import { Countdown } from "../ui/Countdown";
 import { 
   formatSol, 
@@ -26,80 +25,164 @@ interface AuctionCardProps {
     bidCount: number;
     seller: PublicKey;
   };
+  variant?: "vertical" | "horizontal";
 }
 
-export const AuctionCard: FC<AuctionCardProps> = ({ auction }) => {
+export const AuctionCard: FC<AuctionCardProps> = ({ auction, variant = "vertical" }) => {
   const isOpen = "open" in auction.state;
   const now = Math.floor(Date.now() / 1000);
   const isActive = isOpen && now < auction.endTime;
 
+  if (variant === "horizontal") {
+    return <HorizontalCard auction={auction} isActive={isActive} />;
+  }
+
+  return <VerticalCard auction={auction} isActive={isActive} />;
+};
+
+// Vertical Card (Grid View)
+const VerticalCard: FC<{
+  auction: AuctionCardProps["auction"];
+  isActive: boolean;
+}> = ({ auction, isActive }) => {
+  const isOpen = "open" in auction.state;
+
   return (
     <Link href={`/auction/${auction.publicKey.toBase58()}`}>
-      <Card className="hover:border-shadow-500/50 transition-all duration-300 cursor-pointer group h-full">
-        <CardHeader>
-          <div className="flex items-start justify-between gap-2">
-            <CardTitle className="group-hover:text-shadow-400 transition-colors line-clamp-1">
-              {auction.title}
-            </CardTitle>
-            <span className={`status-badge ${getAuctionStateColor(auction.state)}`}>
-              {getAuctionStateLabel(auction.state)}
+      <div className="card-interactive h-full flex flex-col group">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <h3 className="font-semibold text-surface-100 line-clamp-1 group-hover:text-accent-400 transition-colors">
+            {auction.title}
+          </h3>
+          <span className={getAuctionStateColor(auction.state)}>
+            {getAuctionStateLabel(auction.state)}
+          </span>
+        </div>
+
+        {/* Description */}
+        <p className="text-surface-500 text-sm line-clamp-2 mb-4 flex-grow">
+          {auction.description || "No description provided"}
+        </p>
+
+        {/* Stats */}
+        <div className="space-y-3">
+          {/* Reserve Price */}
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-surface-500">Reserve</span>
+            <span className="font-medium text-surface-100">
+              {formatSol(auction.reservePrice)} SOL
             </span>
           </div>
-          <p className="text-midnight-400 text-sm mt-2 line-clamp-2">
-            {auction.description}
-          </p>
-        </CardHeader>
 
-        <CardContent>
-          <div className="space-y-3">
-            {/* Reserve Price */}
-            <div className="flex items-center justify-between">
-              <span className="text-midnight-400 text-sm">Reserve Price</span>
-              <span className="font-semibold text-white">
-                {formatSol(auction.reservePrice)} SOL
+          {/* Bids */}
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-surface-500 flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5" />
+              Bids
+            </span>
+            <span className="font-medium text-surface-100 flex items-center gap-1.5">
+              <Lock className="w-3 h-3 text-accent-500" />
+              {auction.bidCount} sealed
+            </span>
+          </div>
+
+          {/* Time */}
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-surface-500">
+              {isActive ? "Ends in" : "Status"}
+            </span>
+            {isActive ? (
+              <Countdown endTime={auction.endTime} size="sm" />
+            ) : (
+              <span className="text-surface-400 text-xs">
+                {isOpen ? "Starting soon" : getAuctionStateLabel(auction.state)}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-4 pt-4 border-t border-surface-800 flex items-center justify-between">
+          <span className="text-surface-600 text-xs">
+            by {shortenAddress(auction.seller.toBase58())}
+          </span>
+          <span className="text-accent-500 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+            View
+            <ArrowRight className="w-4 h-4" />
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+// Horizontal Card (List View)
+const HorizontalCard: FC<{
+  auction: AuctionCardProps["auction"];
+  isActive: boolean;
+}> = ({ auction, isActive }) => {
+  const isOpen = "open" in auction.state;
+
+  return (
+    <Link href={`/auction/${auction.publicKey.toBase58()}`}>
+      <div className="card-interactive group">
+        <div className="flex items-center gap-6">
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-3 mb-1">
+              <h3 className="font-semibold text-surface-100 truncate group-hover:text-accent-400 transition-colors">
+                {auction.title}
+              </h3>
+              <span className={getAuctionStateColor(auction.state)}>
+                {getAuctionStateLabel(auction.state)}
               </span>
             </div>
+            <p className="text-surface-500 text-sm truncate">
+              {auction.description || "No description provided"}
+            </p>
+          </div>
 
-            {/* Bid Count */}
-            <div className="flex items-center justify-between">
-              <span className="text-midnight-400 text-sm flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                Bids
-              </span>
-              <span className="font-semibold text-white flex items-center gap-1">
-                <Lock className="w-3 h-3 text-shadow-400" />
-                {auction.bidCount} sealed
-              </span>
+          {/* Stats */}
+          <div className="hidden sm:flex items-center gap-8">
+            {/* Reserve */}
+            <div className="text-right">
+              <p className="text-xs text-surface-500 mb-1">Reserve</p>
+              <p className="font-medium text-surface-100">
+                {formatSol(auction.reservePrice)} SOL
+              </p>
+            </div>
+
+            {/* Bids */}
+            <div className="text-right">
+              <p className="text-xs text-surface-500 mb-1">Bids</p>
+              <p className="font-medium text-surface-100 flex items-center justify-end gap-1">
+                <Lock className="w-3 h-3 text-accent-500" />
+                {auction.bidCount}
+              </p>
             </div>
 
             {/* Time */}
-            <div className="flex items-center justify-between">
-              <span className="text-midnight-400 text-sm">
+            <div className="text-right min-w-[120px]">
+              <p className="text-xs text-surface-500 mb-1">
                 {isActive ? "Ends in" : "Status"}
-              </span>
+              </p>
               {isActive ? (
-                <Countdown endTime={auction.endTime} />
+                <Countdown endTime={auction.endTime} size="sm" showIcon={false} />
               ) : (
-                <span className="text-midnight-300">
+                <p className="text-surface-400 text-sm">
                   {isOpen ? "Starting soon" : getAuctionStateLabel(auction.state)}
-                </span>
+                </p>
               )}
             </div>
           </div>
-        </CardContent>
 
-        <CardFooter>
-          <div className="flex items-center justify-between w-full">
-            <span className="text-midnight-500 text-xs">
-              by {shortenAddress(auction.seller.toBase58())}
-            </span>
-            <span className="text-shadow-400 text-sm flex items-center gap-1 group-hover:text-shadow-300 transition-colors">
-              <Eye className="w-4 h-4" />
-              View
-            </span>
+          {/* Arrow */}
+          <div className="text-surface-500 group-hover:text-accent-500 transition-colors">
+            <ArrowRight className="w-5 h-5" />
           </div>
-        </CardFooter>
-      </Card>
+        </div>
+      </div>
     </Link>
   );
 };

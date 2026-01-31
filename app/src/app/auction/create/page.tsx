@@ -1,7 +1,8 @@
 "use client";
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import { redirect } from "next/navigation";
+import Link from "next/link";
+import { Lock, ArrowLeft } from "lucide-react";
 import { CreateAuctionForm } from "@/components/auction/CreateAuctionForm";
 
 export default function CreateAuctionPage() {
@@ -9,22 +10,23 @@ export default function CreateAuctionPage() {
 
   if (!connected) {
     return (
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4">
-            Connect Wallet Required
-          </h1>
-          <p className="text-midnight-400">
-            Please connect your wallet to create an auction.
-          </p>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
+        <div className="w-16 h-16 rounded-full bg-surface-800 flex items-center justify-center mb-6">
+          <Lock className="w-8 h-8 text-surface-500" />
         </div>
+        <h1 className="heading-3 text-surface-100 mb-2 text-center">
+          Connect Your Wallet
+        </h1>
+        <p className="text-muted text-center max-w-md mb-6">
+          Please connect your Solana wallet to create an auction.
+        </p>
+        <Link href="/auctions" className="btn-secondary">
+          <ArrowLeft className="w-4 h-4" />
+          Browse Auctions
+        </Link>
       </div>
     );
   }
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <CreateAuctionForm />
-    </div>
-  );
+  return <CreateAuctionForm />;
 }

@@ -30,20 +30,29 @@ export const Providers: FC<Props> = ({ children }) => {
           <Toaster
             position="bottom-right"
             toastOptions={{
+              duration: 4000,
               style: {
-                background: "#1e293b",
-                color: "#fff",
-                border: "1px solid #334155",
+                background: "#1c1917", // surface-900
+                color: "#fafaf9", // surface-50
+                border: "1px solid #292524", // surface-800
+                borderRadius: "0.75rem",
+                fontSize: "0.875rem",
               },
               success: {
                 iconTheme: {
-                  primary: "#22c55e",
+                  primary: "#10b981", // success-500
                   secondary: "#fff",
                 },
               },
               error: {
                 iconTheme: {
-                  primary: "#ef4444",
+                  primary: "#f43f5e", // error-500
+                  secondary: "#fff",
+                },
+              },
+              loading: {
+                iconTheme: {
+                  primary: "#f59e0b", // accent-500
                   secondary: "#fff",
                 },
               },
@@ -51,8 +60,11 @@ export const Providers: FC<Props> = ({ children }) => {
           />
         </WalletProviderDynamic>
       ) : (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-pulse text-midnight-400">Loading...</div>
+        <div className="min-h-screen flex items-center justify-center bg-surface-950">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-accent-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-surface-400 text-sm">Loading...</span>
+          </div>
         </div>
       )}
     </QueryProvider>

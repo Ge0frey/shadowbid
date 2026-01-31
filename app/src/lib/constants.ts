@@ -64,10 +64,10 @@ export const getAuctionStateLabel = (state: AuctionState): string => {
 };
 
 export const getAuctionStateColor = (state: AuctionState): string => {
-  if ("open" in state) return "status-open";
-  if ("closed" in state) return "status-closed";
-  if ("winnerDetermined" in state) return "status-badge bg-purple-900/50 text-purple-400 border border-purple-700";
-  if ("settled" in state) return "status-settled";
-  if ("cancelled" in state) return "status-cancelled";
-  return "";
+  if ("open" in state) return "badge-open";
+  if ("closed" in state) return "badge-closed";
+  if ("winnerDetermined" in state) return "badge-winner";
+  if ("settled" in state) return "badge-settled";
+  if ("cancelled" in state) return "badge-cancelled";
+  return "badge";
 };

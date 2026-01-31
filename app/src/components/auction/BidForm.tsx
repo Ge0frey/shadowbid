@@ -4,12 +4,12 @@ import { FC, useState } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import toast from "react-hot-toast";
-import { Loader2, Lock, ShieldCheck } from "lucide-react";
+import { Loader2, Lock, ShieldCheck, AlertCircle } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../ui/Card";
 import { getProgram } from "@/lib/program";
 import { findBidPda } from "@/lib/pda";
 import { encryptBid } from "@/lib/encryption";
-import { parseSol, INCO_LIGHTNING_PROGRAM_ID } from "@/lib/constants";
+import { parseSol, formatSol, INCO_LIGHTNING_PROGRAM_ID } from "@/lib/constants";
 
 interface BidFormProps {
   auctionPubkey: PublicKey;
@@ -29,6 +29,8 @@ export const BidForm: FC<BidFormProps> = ({
   const [loading, setLoading] = useState(false);
   const [encrypting, setEncrypting] = useState(false);
 
+  const minBid = Number(reservePrice) / 1e9;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -37,11 +39,13 @@ export const BidForm: FC<BidFormProps> = ({
       return;
     }
 
-    const amountLamports = parseSol(parseFloat(bidAmount));
-    if (amountLamports < reservePrice) {
-      toast.error(`Bid must be at least ${Number(reservePrice) / 1e9} SOL`);
+    const amount = parseFloat(bidAmount);
+    if (isNaN(amount) || amount < minBid) {
+      toast.error(`Bid must be at least ${minBid} SOL`);
       return;
     }
+
+    const amountLamports = parseSol(amount);
 
     setLoading(true);
 
@@ -95,10 +99,10 @@ export const BidForm: FC<BidFormProps> = ({
   };
 
   return (
-    <Card>
+    <Card className="border-accent-800/30">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Lock className="w-5 h-5 text-shadow-400" />
+          <Lock className="w-5 h-5 text-accent-500" />
           Place Sealed Bid
         </CardTitle>
         <CardDescription>
@@ -112,33 +116,44 @@ export const BidForm: FC<BidFormProps> = ({
             <label htmlFor="bid" className="label">
               Bid Amount (SOL)
             </label>
-            <input
-              id="bid"
-              type="number"
-              step="0.001"
-              min={Number(reservePrice) / 1e9}
-              value={bidAmount}
-              onChange={(e) => setBidAmount(e.target.value)}
-              placeholder={`Min: ${Number(reservePrice) / 1e9} SOL`}
-              className="input"
-              disabled={loading}
-              required
-            />
+            <div className="relative">
+              <input
+                id="bid"
+                type="number"
+                step="0.001"
+                min={minBid}
+                value={bidAmount}
+                onChange={(e) => setBidAmount(e.target.value)}
+                placeholder={`Min: ${minBid} SOL`}
+                className="input pr-16"
+                disabled={loading}
+                required
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-surface-500 text-sm">
+                SOL
+              </span>
+            </div>
+            <p className="text-surface-600 text-xs mt-2">
+              Reserve price: {formatSol(reservePrice)} SOL
+            </p>
           </div>
 
           {/* Security Info */}
-          <div className="flex items-start gap-2 text-sm text-midnight-400 bg-midnight-800/50 rounded-lg p-3">
-            <ShieldCheck className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
-            <span>
-              Your bid is encrypted using Inco&apos;s confidential computing.
-              Only you will know your bid amount.
-            </span>
+          <div className="flex items-start gap-3 text-sm bg-success-950/30 rounded-lg p-4 border border-success-800/30">
+            <ShieldCheck className="w-5 h-5 text-success-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-success-300 mb-1">End-to-end encrypted</p>
+              <p className="text-surface-400">
+                Your bid is encrypted using Inco&apos;s confidential computing.
+                Only you will know your bid amount.
+              </p>
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={loading || !wallet.connected}
-            className="btn-primary w-full py-3 flex items-center justify-center gap-2"
+            className="btn-primary w-full btn-lg"
           >
             {loading ? (
               <>

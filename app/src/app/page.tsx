@@ -1,277 +1,338 @@
 "use client";
 
-import { FC, useMemo } from "react";
+import { FC, useState } from "react";
 import Link from "next/link";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { 
   Shield, 
   Lock, 
   Eye, 
-  Zap, 
-  ArrowRight, 
-  Plus,
+  EyeOff,
+  ArrowRight,
+  CheckCircle,
+  HelpCircle,
+  ChevronDown,
+  Gavel,
   Users,
-  TrendingUp,
-  Loader2
+  Zap
 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/Card";
-import { AuctionCard } from "@/components/auction/AuctionCard";
-import { useAuctions } from "@/hooks/useAuctions";
-import { formatSol } from "@/lib/constants";
 
-export default function HomePage() {
+export default function LandingPage() {
   const { connected } = useWallet();
-  const { auctions, loading, error, refetch } = useAuctions();
-
-  // Calculate stats from auctions
-  const stats = useMemo(() => {
-    const activeAuctions = auctions.filter(a => "open" in a.state);
-    const totalBids = auctions.reduce((sum, a) => sum + a.bidCount, 0);
-    const totalVolume = auctions.reduce((sum, a) => sum + a.winningAmount, BigInt(0));
-    
-    return {
-      activeCount: activeAuctions.length,
-      totalBids,
-      totalVolume,
-    };
-  }, [auctions]);
-
-  // Filter for active auctions only
-  const activeAuctions = useMemo(() => {
-    const now = Math.floor(Date.now() / 1000);
-    return auctions.filter(a => "open" in a.state && a.endTime > now);
-  }, [auctions]);
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-shadow-950/50 via-midnight-950 to-midnight-950" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-shadow-900/20 via-transparent to-transparent" />
-        
-        <div className="relative container mx-auto px-4 py-24 md:py-32">
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-shadow-900/30 border border-shadow-700/50 rounded-full px-4 py-2 mb-6">
-              <Shield className="w-4 h-4 text-shadow-400" />
-              <span className="text-shadow-300 text-sm">Powered by Inco Lightning</span>
-            </div>
-            
-            <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-white via-shadow-200 to-shadow-400 bg-clip-text text-transparent">
-                Sealed-Bid Auctions
-              </span>
-              <br />
-              <span className="text-white">
-                Where Privacy Meets Trust
-              </span>
-            </h1>
-            
-            <p className="text-xl text-midnight-300 mb-8 max-w-2xl mx-auto">
-              Place encrypted bids that no one can see. Win fair auctions without 
-              front-running, bid manipulation, or last-second sniping.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              {connected ? (
-                <>
-                  <Link href="/auction/create" className="btn-primary py-3 px-8 text-lg flex items-center gap-2">
-                    <Plus className="w-5 h-5" />
-                    Create Auction
-                  </Link>
-                  <Link href="#auctions" className="btn-secondary py-3 px-8 text-lg flex items-center gap-2">
-                    Browse Auctions
-                    <ArrowRight className="w-5 h-5" />
-                  </Link>
-                </>
-              ) : (
-                <div className="text-midnight-400">
-                  Connect your wallet to get started
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroSection connected={connected} />
+
+      {/* How It Works Section */}
+      <HowItWorksSection />
 
       {/* Features Section */}
-      <section className="py-20 bg-midnight-900/50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-white mb-4">How It Works</h2>
-            <p className="text-midnight-400 max-w-2xl mx-auto">
-              ShadowBid uses Inco&apos;s confidential computing to enable truly sealed auctions
-              on Solana.
-            </p>
-          </div>
+      <FeaturesSection />
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <FeatureCard
-              icon={<Lock className="w-8 h-8" />}
-              title="Encrypted Bids"
-              description="Bids are encrypted client-side using Inco SDK. Even validators can't see bid amounts."
-            />
-            <FeatureCard
-              icon={<Eye className="w-8 h-8" />}
-              title="Hidden Until Settlement"
-              description="Winner is determined through encrypted comparison. Losing bids are never revealed."
-            />
-            <FeatureCard
-              icon={<Zap className="w-8 h-8" />}
-              title="Fair & Transparent"
-              description="No front-running, no bid sniping. The highest bidder always wins fairly."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <StatCard
-              icon={<Shield className="w-6 h-6 text-shadow-400" />}
-              value="100%"
-              label="Encrypted Bids"
-            />
-            <StatCard
-              icon={<Users className="w-6 h-6 text-shadow-400" />}
-              value={stats.activeCount.toString()}
-              label="Active Auctions"
-            />
-            <StatCard
-              icon={<Lock className="w-6 h-6 text-shadow-400" />}
-              value={stats.totalBids.toString()}
-              label="Sealed Bids"
-            />
-            <StatCard
-              icon={<TrendingUp className="w-6 h-6 text-shadow-400" />}
-              value={`${formatSol(stats.totalVolume)} SOL`}
-              label="Total Volume"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Auctions Section */}
-      <section id="auctions" className="py-20 bg-midnight-900/30">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold text-white">Active Auctions</h2>
-            {auctions.length > 0 && (
-              <button
-                onClick={refetch}
-                className="text-shadow-400 hover:text-shadow-300 flex items-center gap-1 text-sm"
-              >
-                Refresh
-              </button>
-            )}
-          </div>
-
-          {/* Auctions Grid */}
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-8 h-8 animate-spin text-shadow-400" />
-            </div>
-          ) : error ? (
-            <div className="text-center py-16">
-              <p className="text-red-400 mb-4">{error}</p>
-              <button onClick={refetch} className="btn-secondary">
-                Try Again
-              </button>
-            </div>
-          ) : activeAuctions.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-midnight-800 flex items-center justify-center">
-                <Lock className="w-8 h-8 text-midnight-500" />
-              </div>
-              <h3 className="text-xl font-semibold text-midnight-300 mb-2">
-                No Active Auctions
-              </h3>
-              <p className="text-midnight-500 mb-6">
-                Be the first to create a sealed-bid auction!
-              </p>
-              {connected && (
-                <Link href="/auction/create" className="btn-primary inline-flex items-center gap-2">
-                  <Plus className="w-4 h-4" />
-                  Create Auction
-                </Link>
-              )}
-            </div>
-          ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {activeAuctions.slice(0, 6).map((auction) => (
-                <AuctionCard key={auction.publicKey.toBase58()} auction={auction} />
-              ))}
-            </div>
-          )}
-
-          {/* Show all auctions link if there are more */}
-          {activeAuctions.length > 6 && (
-            <div className="text-center mt-8">
-              <Link
-                href="/my-auctions"
-                className="text-shadow-400 hover:text-shadow-300 flex items-center justify-center gap-1"
-              >
-                View All {activeAuctions.length} Auctions
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          )}
-        </div>
-      </section>
+      {/* FAQ Section */}
+      <FAQSection />
 
       {/* CTA Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <Card className="bg-gradient-to-br from-shadow-900/50 to-shadow-950/50 border-shadow-700/50">
-            <CardContent className="py-12 text-center">
-              <h2 className="text-3xl font-bold text-white mb-4">
-                Ready to Start Bidding?
-              </h2>
-              <p className="text-midnight-300 mb-8 max-w-xl mx-auto">
-                Connect your Solana wallet and experience the future of fair auctions.
-                Your bids remain private, guaranteed by cryptography.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/auction/create" className="btn-primary py-3 px-8">
-                  Create Your First Auction
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+      <CTASection connected={connected} />
     </div>
   );
 }
 
-// Feature Card Component
-const FeatureCard: FC<{ icon: React.ReactNode; title: string; description: string }> = ({
-  icon,
-  title,
-  description,
-}) => (
-  <Card className="text-center hover:border-shadow-500/50 transition-colors">
-    <CardContent className="pt-8">
-      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-shadow-900/50 flex items-center justify-center text-shadow-400">
-        {icon}
+// ==================== HERO SECTION ====================
+const HeroSection: FC<{ connected: boolean }> = ({ connected }) => (
+  <section className="relative overflow-hidden">
+    {/* Subtle background pattern */}
+    <div className="absolute inset-0 bg-gradient-to-b from-surface-900/50 to-surface-950" />
+    <div 
+      className="absolute inset-0 opacity-[0.02]"
+      style={{
+        backgroundImage: `radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)`,
+        backgroundSize: "32px 32px",
+      }}
+    />
+    
+    <div className="relative container mx-auto px-4 py-24 md:py-32 lg:py-40">
+      <div className="max-w-3xl mx-auto text-center">
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 bg-surface-800/50 border border-surface-700/50 rounded-full px-4 py-2 mb-8">
+          <Shield className="w-4 h-4 text-accent-500" />
+          <span className="text-surface-300 text-sm">Powered by Inco Confidential Computing</span>
+        </div>
+        
+        {/* Headline */}
+        <h1 className="heading-1 text-surface-100 mb-6">
+          Sealed-Bid Auctions
+          <br />
+          <span className="text-accent-500">Without Compromise</span>
+        </h1>
+        
+        {/* Subheadline */}
+        <p className="text-xl text-surface-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+          Place encrypted bids that no one can see—not even validators. 
+          Win fair auctions without front-running or bid manipulation.
+        </p>
+        
+        {/* CTA Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link href="/auctions" className="btn-primary btn-lg">
+            Browse Auctions
+            <ArrowRight className="w-5 h-5" />
+          </Link>
+          {connected ? (
+            <Link href="/auction/create" className="btn-secondary btn-lg">
+              Create Auction
+            </Link>
+          ) : (
+            <span className="text-surface-500 text-sm">
+              Connect wallet to create auctions
+            </span>
+          )}
+        </div>
       </div>
-      <h3 className="text-xl font-semibold text-white mb-2">{title}</h3>
-      <p className="text-midnight-400">{description}</p>
-    </CardContent>
-  </Card>
+    </div>
+  </section>
 );
 
-// Stat Card Component
-const StatCard: FC<{ icon: React.ReactNode; value: string; label: string }> = ({
-  icon,
-  value,
-  label,
-}) => (
-  <div className="text-center">
-    <div className="flex items-center justify-center mb-2">{icon}</div>
-    <div className="text-2xl font-bold text-white">{value}</div>
-    <div className="text-midnight-500 text-sm">{label}</div>
-  </div>
+// ==================== HOW IT WORKS SECTION ====================
+const HowItWorksSection: FC = () => {
+  const steps = [
+    {
+      number: "01",
+      title: "Create or Find an Auction",
+      description: "Sellers create auctions with a reserve price. Buyers browse active auctions to find items they want.",
+      icon: Gavel,
+    },
+    {
+      number: "02",
+      title: "Place Encrypted Bids",
+      description: "Enter your bid amount and it's encrypted client-side. The encrypted bid is stored on-chain—no one can see the amount.",
+      icon: Lock,
+    },
+    {
+      number: "03",
+      title: "Winner Determined Privately",
+      description: "After bidding ends, encrypted comparison determines the highest bid without revealing any amounts.",
+      icon: EyeOff,
+    },
+    {
+      number: "04",
+      title: "Settlement & Reveal",
+      description: "Only the winner's bid is revealed during settlement. Losing bids remain private forever.",
+      icon: CheckCircle,
+    },
+  ];
+
+  return (
+    <section className="section-alt">
+      <div className="container mx-auto px-4">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <h2 className="heading-2 text-surface-100 mb-4">How It Works</h2>
+          <p className="text-muted max-w-2xl mx-auto">
+            ShadowBid uses Inco&apos;s confidential computing to enable truly sealed auctions on Solana.
+          </p>
+        </div>
+
+        {/* Steps */}
+        <div className="max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8">
+            {steps.map((step, index) => (
+              <div key={step.number} className="relative">
+                <div className="card hover:border-surface-700 transition-colors">
+                  {/* Step Number */}
+                  <span className="text-5xl font-bold text-surface-800 absolute top-4 right-4">
+                    {step.number}
+                  </span>
+                  
+                  {/* Icon */}
+                  <div className="w-12 h-12 rounded-xl bg-accent-900/30 border border-accent-700/30 flex items-center justify-center mb-4">
+                    <step.icon className="w-6 h-6 text-accent-500" />
+                  </div>
+
+                  {/* Content */}
+                  <h3 className="heading-3 text-surface-100 mb-2">{step.title}</h3>
+                  <p className="text-muted">{step.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ==================== FEATURES SECTION ====================
+const FeaturesSection: FC = () => {
+  const features = [
+    {
+      icon: Lock,
+      title: "Complete Privacy",
+      description: "Bids are encrypted end-to-end. Even blockchain validators cannot see bid amounts.",
+    },
+    {
+      icon: Shield,
+      title: "Front-Running Proof",
+      description: "Encrypted bids eliminate MEV attacks and strategic underbidding.",
+    },
+    {
+      icon: Users,
+      title: "Fair Competition",
+      description: "Every bidder competes on equal ground—no insider advantages.",
+    },
+    {
+      icon: Zap,
+      title: "Single Transaction",
+      description: "No commit-reveal schemes. Place your bid in one transaction.",
+    },
+    {
+      icon: EyeOff,
+      title: "Selective Disclosure",
+      description: "Only the winning bid is revealed. Losing bids stay secret forever.",
+    },
+    {
+      icon: CheckCircle,
+      title: "Trustless Settlement",
+      description: "TEE-attested decryption ensures honest winner determination.",
+    },
+  ];
+
+  return (
+    <section className="section">
+      <div className="container mx-auto px-4">
+        {/* Section Header */}
+        <div className="text-center mb-16">
+          <h2 className="heading-2 text-surface-100 mb-4">Why ShadowBid?</h2>
+          <p className="text-muted max-w-2xl mx-auto">
+            Traditional auctions expose your strategy. ShadowBid keeps your bids private.
+          </p>
+        </div>
+
+        {/* Features Grid */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {features.map((feature) => (
+            <div
+              key={feature.title}
+              className="p-6 rounded-xl border border-surface-800 bg-surface-900/50 hover:border-surface-700 transition-colors"
+            >
+              <div className="w-10 h-10 rounded-lg bg-surface-800 flex items-center justify-center mb-4">
+                <feature.icon className="w-5 h-5 text-accent-500" />
+              </div>
+              <h3 className="font-semibold text-surface-100 mb-2">{feature.title}</h3>
+              <p className="text-sm text-muted">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ==================== FAQ SECTION ====================
+const FAQSection: FC = () => {
+  const faqs = [
+    {
+      question: "How are bids kept private?",
+      answer: "Bids are encrypted client-side using Inco's encryption SDK before being submitted to the blockchain. The encrypted values are stored as cryptographic handles that can only be processed through Inco's Trusted Execution Environment (TEE).",
+    },
+    {
+      question: "Can the auction creator see my bid?",
+      answer: "No. The auction creator, other bidders, and even blockchain validators cannot see individual bid amounts. Only encrypted handles are stored on-chain.",
+    },
+    {
+      question: "How is the winner determined?",
+      answer: "After bidding ends, encrypted comparisons are performed using homomorphic operations (e_ge, e_select) inside the TEE. The highest bid is determined without decrypting any individual bids.",
+    },
+    {
+      question: "What happens to losing bids?",
+      answer: "Losing bids are never decrypted or revealed. Only the winner receives permission to decrypt their own bid during settlement. All other bids remain permanently encrypted.",
+    },
+    {
+      question: "Can I update my bid?",
+      answer: "Yes. You can place multiple bids on the same auction. Each new bid updates your existing encrypted bid, but previous amounts remain hidden.",
+    },
+    {
+      question: "What's the minimum auction duration?",
+      answer: "The minimum auction duration is 2 minutes (for testing purposes). The maximum duration is 7 days.",
+    },
+  ];
+
+  return (
+    <section className="section-alt">
+      <div className="container mx-auto px-4">
+        {/* Section Header */}
+        <div className="text-center mb-12">
+          <h2 className="heading-2 text-surface-100 mb-4">Frequently Asked Questions</h2>
+          <p className="text-muted max-w-2xl mx-auto">
+            Everything you need to know about sealed-bid auctions on ShadowBid.
+          </p>
+        </div>
+
+        {/* FAQ Accordion */}
+        <div className="max-w-3xl mx-auto">
+          <div className="space-y-4">
+            {faqs.map((faq, index) => (
+              <FAQItem key={index} question={faq.question} answer={faq.answer} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const FAQItem: FC<{ question: string; answer: string }> = ({ question, answer }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="border border-surface-800 rounded-xl overflow-hidden">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-5 text-left bg-surface-900/50 hover:bg-surface-900 transition-colors"
+      >
+        <span className="font-medium text-surface-100">{question}</span>
+        <ChevronDown
+          className={`w-5 h-5 text-surface-400 transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
+        />
+      </button>
+      {isOpen && (
+        <div className="p-5 pt-0 bg-surface-900/50">
+          <p className="text-muted">{answer}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ==================== CTA SECTION ====================
+const CTASection: FC<{ connected: boolean }> = ({ connected }) => (
+  <section className="section">
+    <div className="container mx-auto px-4">
+      <div className="max-w-3xl mx-auto text-center">
+        <div className="bg-gradient-to-br from-surface-800/50 to-surface-900/50 border border-surface-700/50 rounded-2xl p-10 md:p-14">
+          <h2 className="heading-2 text-surface-100 mb-4">
+            Ready to Bid Privately?
+          </h2>
+          <p className="text-muted mb-8 max-w-xl mx-auto">
+            Connect your Solana wallet and experience fair auctions where your strategy stays secret.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/auctions" className="btn-primary btn-lg">
+              Explore Auctions
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            {connected && (
+              <Link href="/auction/create" className="btn-secondary btn-lg">
+                Create Your Auction
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 );

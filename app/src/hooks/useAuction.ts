@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
-import { getReadOnlyProgram, bytesToString, AuctionAccount } from "@/lib/program";
+import { getReadOnlyProgram, bytesToString } from "@/lib/program";
 import { AuctionState } from "@/lib/constants";
 
 export interface AuctionData {
@@ -47,7 +47,7 @@ export function useAuction(auctionPubkey: string | PublicKey | null) {
         ? new PublicKey(auctionPubkey) 
         : auctionPubkey;
       
-      const account = await program.account.auction.fetch(pubkey);
+      const account = await (program.account as any).auction.fetch(pubkey);
 
       setAuction({
         publicKey: pubkey,

@@ -27,9 +27,9 @@ export function useAuctions(filter?: {
       }
 
       // Fetch all auction accounts
-      const accounts = await program.account.auction.all();
+      const accounts = await (program.account as any).auction.all();
 
-      const auctionList: AuctionData[] = accounts.map((item) => ({
+      const auctionList: AuctionData[] = accounts.map((item: any) => ({
         publicKey: item.publicKey,
         seller: item.account.seller,
         itemMint: item.account.itemMint,
