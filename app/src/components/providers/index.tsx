@@ -3,7 +3,9 @@
 import { FC, ReactNode, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { QueryProvider } from "./QueryProvider";
+import { ModalProvider } from "./ModalProvider";
 import { Toaster } from "react-hot-toast";
+import { CreateAuctionModal } from "@/components/auction/CreateAuctionModal";
 
 // Dynamically import WalletProvider with SSR disabled to prevent hydration errors
 const WalletProviderDynamic = dynamic(
@@ -26,38 +28,41 @@ export const Providers: FC<Props> = ({ children }) => {
     <QueryProvider>
       {mounted ? (
         <WalletProviderDynamic>
-          {children}
-          <Toaster
-            position="bottom-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: "#1c1917", // surface-900
-                color: "#fafaf9", // surface-50
-                border: "1px solid #292524", // surface-800
-                borderRadius: "0.75rem",
-                fontSize: "0.875rem",
-              },
-              success: {
-                iconTheme: {
-                  primary: "#10b981", // success-500
-                  secondary: "#fff",
+          <ModalProvider>
+            {children}
+            <CreateAuctionModal />
+            <Toaster
+              position="bottom-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: "#1c1917", // surface-900
+                  color: "#fafaf9", // surface-50
+                  border: "1px solid #292524", // surface-800
+                  borderRadius: "0.75rem",
+                  fontSize: "0.875rem",
                 },
-              },
-              error: {
-                iconTheme: {
-                  primary: "#f43f5e", // error-500
-                  secondary: "#fff",
+                success: {
+                  iconTheme: {
+                    primary: "#10b981", // success-500
+                    secondary: "#fff",
+                  },
                 },
-              },
-              loading: {
-                iconTheme: {
-                  primary: "#f59e0b", // accent-500
-                  secondary: "#fff",
+                error: {
+                  iconTheme: {
+                    primary: "#f43f5e", // error-500
+                    secondary: "#fff",
+                  },
                 },
-              },
-            }}
-          />
+                loading: {
+                  iconTheme: {
+                    primary: "#f59e0b", // accent-500
+                    secondary: "#fff",
+                  },
+                },
+              }}
+            />
+          </ModalProvider>
         </WalletProviderDynamic>
       ) : (
         <div className="min-h-screen flex items-center justify-center bg-surface-950">
