@@ -6,7 +6,6 @@ import { PublicKey, SystemProgram } from "@solana/web3.js";
 import toast from "react-hot-toast";
 import { 
   Loader2, 
-  Lock, 
   Unlock, 
   Trophy, 
   CheckCircle, 
@@ -15,7 +14,6 @@ import {
   ArrowRight,
   Clock
 } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "../ui/Card";
 import { getProgram, getReadOnlyProgram } from "@/lib/program";
 import { findBidPda, findAllowancePda } from "@/lib/pda";
 import { decryptWithProof } from "@/lib/encryption";
@@ -347,17 +345,17 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
         <button
           onClick={handleCloseBidding}
           disabled={loading}
-          className="btn-primary w-full"
+          className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-accent-600 to-accent-500 text-white font-semibold text-sm shadow-lg shadow-accent-500/20 hover:from-accent-500 hover:to-accent-400 hover:shadow-accent-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {loading && actionType === "close" ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Closing...
+              <span>Closing...</span>
             </>
           ) : (
             <>
               <Unlock className="w-4 h-4" />
-              Close Bidding
+              <span>Close Bidding</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}
@@ -379,15 +377,15 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
         <button
           onClick={handleCloseBidding}
           disabled={loading}
-          className="btn-secondary w-full"
+          className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-surface-800/80 border border-surface-700/50 text-surface-200 font-semibold text-sm hover:bg-surface-700/80 hover:border-surface-600/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Cancelling...
+              <span>Cancelling...</span>
             </>
           ) : (
-            "Cancel Auction"
+            <span>Cancel Auction</span>
           )}
         </button>
       </ActionCard>
@@ -407,14 +405,14 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
         borderColor="border-accent-700/30"
       >
         {/* Progress Bar */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between text-xs text-surface-500 mb-2">
-            <span>Progress</span>
-            <span>{progress}%</span>
+        <div className="mb-5">
+          <div className="flex items-center justify-between text-xs mb-2">
+            <span className="text-surface-500 font-medium">Progress</span>
+            <span className="text-surface-300 font-semibold">{progress}%</span>
           </div>
-          <div className="h-2 bg-surface-800 rounded-full overflow-hidden">
+          <div className="h-2.5 bg-surface-800/80 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-accent-500 rounded-full transition-all duration-300"
+              className="h-full bg-gradient-to-r from-accent-500 to-accent-400 rounded-full transition-all duration-500 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -425,25 +423,23 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
             <Loader2 className="w-5 h-5 animate-spin text-surface-400" />
           </div>
         ) : (
-          <div className="space-y-3">
-            <button
-              onClick={handleProcessAllBids}
-              disabled={loading || unprocessedBids.length === 0}
-              className="btn-primary w-full"
-            >
-              {loading && actionType === "processAll" ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4" />
-                  Process All ({unprocessedBids.length} remaining)
-                </>
-              )}
-            </button>
-          </div>
+          <button
+            onClick={handleProcessAllBids}
+            disabled={loading || unprocessedBids.length === 0}
+            className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-accent-600 to-accent-500 text-white font-semibold text-sm shadow-lg shadow-accent-500/20 hover:from-accent-500 hover:to-accent-400 hover:shadow-accent-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+          >
+            {loading && actionType === "processAll" ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Processing...</span>
+              </>
+            ) : (
+              <>
+                <Play className="w-4 h-4" />
+                <span>Process All ({unprocessedBids.length} remaining)</span>
+              </>
+            )}
+          </button>
         )}
       </ActionCard>
     );
@@ -462,17 +458,17 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
         <button
           onClick={handleFinalizeWinner}
           disabled={loading}
-          className="btn-primary w-full"
+          className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-accent-600 to-accent-500 text-white font-semibold text-sm shadow-lg shadow-accent-500/20 hover:from-accent-500 hover:to-accent-400 hover:shadow-accent-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {loading && actionType === "finalize" ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Finalizing...
+              <span>Finalizing...</span>
             </>
           ) : (
             <>
               <Trophy className="w-4 h-4" />
-              Confirm Winner
+              <span>Confirm Winner</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}
@@ -494,17 +490,17 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
         <button
           onClick={handleSettleAuction}
           disabled={loading}
-          className="btn-success w-full"
+          className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-success-600 to-success-500 text-white font-semibold text-sm shadow-lg shadow-success-500/20 hover:from-success-500 hover:to-success-400 hover:shadow-success-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {loading && actionType === "settle" ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              Settling...
+              <span>Settling...</span>
             </>
           ) : (
             <>
               <CheckCircle className="w-4 h-4" />
-              Reveal & Pay
+              <span>Reveal & Pay</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}
@@ -521,10 +517,11 @@ export const AuctionActions: FC<AuctionActionsProps> = ({
         iconColor="text-surface-400"
         title="Awaiting Settlement"
         description="A winner has been determined. Waiting for them to complete the settlement."
-        borderColor="border-surface-700/30"
+        borderColor="border-surface-700/50"
       >
-        <div className="text-center py-2">
-          <Loader2 className="w-5 h-5 animate-spin text-surface-500 mx-auto" />
+        <div className="flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-surface-800/50 border border-surface-700/30">
+          <Loader2 className="w-4 h-4 animate-spin text-surface-400" />
+          <span className="text-sm text-surface-400">Waiting for winner to settle...</span>
         </div>
       </ActionCard>
     );
@@ -542,16 +539,24 @@ const ActionCard: FC<{
   borderColor: string;
   children: React.ReactNode;
 }> = ({ icon: Icon, iconColor, title, description, borderColor, children }) => (
-  <Card className={borderColor}>
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2">
-        <Icon className={`w-5 h-5 ${iconColor}`} />
-        {title}
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      <p className="text-surface-400 text-sm mb-4">{description}</p>
+  <div className={`rounded-2xl bg-gradient-to-br from-surface-900/90 to-surface-900/70 border ${borderColor} backdrop-blur-sm overflow-hidden`}>
+    <div className="px-6 pt-6 pb-4">
+      <div className="flex items-center gap-3 mb-3">
+        <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
+          iconColor.includes('warning') ? 'bg-warning-900/40 border border-warning-700/30' :
+          iconColor.includes('error') ? 'bg-error-900/40 border border-error-700/30' :
+          iconColor.includes('success') ? 'bg-success-900/40 border border-success-700/30' :
+          iconColor.includes('accent') ? 'bg-accent-900/40 border border-accent-700/30' :
+          'bg-surface-800/60 border border-surface-700/50'
+        }`}>
+          <Icon className={`w-4.5 h-4.5 ${iconColor}`} />
+        </div>
+        <h3 className="text-base font-bold text-surface-100">{title}</h3>
+      </div>
+      <p className="text-sm text-surface-400 leading-relaxed">{description}</p>
+    </div>
+    <div className="px-6 pb-6">
       {children}
-    </CardContent>
-  </Card>
+    </div>
+  </div>
 );
