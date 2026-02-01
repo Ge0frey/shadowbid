@@ -15,17 +15,15 @@ import {
   CheckCircle,
   Loader2,
   RefreshCw,
-  ArrowLeft,
   ChevronRight,
   Gavel,
-  Eye,
   EyeOff,
-  Sparkles,
   TrendingUp,
   Trophy,
-  Zap
+  Zap,
+  Coins,
+  FileText
 } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/Card";
 import { Countdown } from "@/components/ui/Countdown";
 import { BidForm } from "@/components/auction/BidForm";
 import { AuctionActions } from "@/components/auction/AuctionActions";
@@ -143,13 +141,19 @@ export default function AuctionDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen">
-        <div className="absolute inset-0 bg-gradient-to-b from-surface-900/50 to-surface-950 pointer-events-none" />
+      <div className="min-h-screen bg-surface-950">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-accent-500/5 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-purple-500/5 rounded-full blur-[100px]" />
+        </div>
         <div className="relative min-h-[80vh] flex flex-col items-center justify-center">
-          <div className="w-16 h-16 rounded-2xl bg-surface-800/50 flex items-center justify-center mb-4">
-            <Loader2 className="w-8 h-8 animate-spin text-accent-500" />
+          <div className="relative">
+            <div className="absolute inset-0 bg-accent-500/20 rounded-2xl blur-xl animate-pulse" />
+            <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-surface-800 to-surface-900 border border-surface-700/50 flex items-center justify-center shadow-2xl">
+              <Loader2 className="w-9 h-9 animate-spin text-accent-500" />
+            </div>
           </div>
-          <p className="text-muted">Loading auction...</p>
+          <p className="text-surface-400 mt-6 text-sm tracking-wide">Loading auction details...</p>
         </div>
       </div>
     );
@@ -157,17 +161,25 @@ export default function AuctionDetailPage() {
 
   if (error || !auction) {
     return (
-      <div className="min-h-screen">
-        <div className="absolute inset-0 bg-gradient-to-b from-surface-900/50 to-surface-950 pointer-events-none" />
+      <div className="min-h-screen bg-surface-950">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-error-500/5 rounded-full blur-[150px]" />
+        </div>
         <div className="relative min-h-[80vh] flex flex-col items-center justify-center px-4">
-          <div className="w-20 h-20 rounded-2xl bg-error-900/30 flex items-center justify-center mb-6">
-            <AlertCircle className="w-10 h-10 text-error-400" />
+          <div className="relative mb-8">
+            <div className="absolute inset-0 bg-error-500/10 rounded-3xl blur-2xl" />
+            <div className="relative w-24 h-24 rounded-3xl bg-gradient-to-br from-error-900/50 to-surface-900 border border-error-800/50 flex items-center justify-center shadow-2xl">
+              <AlertCircle className="w-12 h-12 text-error-400" />
+            </div>
           </div>
-          <h1 className="heading-2 text-surface-100 mb-3">Auction Not Found</h1>
-          <p className="text-muted text-center max-w-md mb-8">{error || "This auction does not exist or has been removed."}</p>
-          <Link href="/auctions" className="btn-secondary">
-            <ArrowLeft className="w-4 h-4" />
-            Back to Auctions
+          <h1 className="text-2xl md:text-3xl font-bold text-surface-100 mb-3">Auction Not Found</h1>
+          <p className="text-surface-400 text-center max-w-md mb-8 leading-relaxed">{error || "This auction does not exist or has been removed."}</p>
+          <Link 
+            href="/auctions" 
+            className="group inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-surface-800/80 border border-surface-700/50 text-surface-200 hover:bg-surface-700/80 hover:border-surface-600/50 transition-all duration-200"
+          >
+            <Gavel className="w-4 h-4 text-accent-500" />
+            <span>Browse Auctions</span>
           </Link>
         </div>
       </div>
@@ -186,68 +198,78 @@ export default function AuctionDetailPage() {
   const isSeller = wallet.publicKey && auction.seller.toBase58() === wallet.publicKey.toBase58();
 
   return (
-    <div className="min-h-screen">
-      {/* Header with Breadcrumb */}
-      <div className="border-b border-surface-800 bg-surface-950">
-        <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen bg-surface-950">
+      {/* Background Elements */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-1/4 w-[600px] h-[600px] bg-accent-500/[0.03] rounded-full blur-[150px]" />
+        <div className="absolute bottom-1/4 left-0 w-[500px] h-[500px] bg-purple-500/[0.03] rounded-full blur-[120px]" />
+      </div>
+
+      {/* Breadcrumb Navigation */}
+      <div className="relative border-b border-surface-800/60 bg-surface-950/80 backdrop-blur-xl">
+        <div className="container mx-auto px-4 sm:px-6 py-4">
           <nav className="flex items-center gap-2 text-sm">
-            <Link href="/auctions" className="text-surface-500 hover:text-surface-200 transition-colors flex items-center gap-1">
-              <Gavel className="w-4 h-4" />
-              Auctions
+            <Link 
+              href="/auctions" 
+              className="flex items-center gap-1.5 text-surface-500 hover:text-accent-400 transition-colors duration-200"
+            >
+              <Gavel className="w-[18px] h-[18px]" />
+              <span className="font-medium">Auctions</span>
             </Link>
             <ChevronRight className="w-4 h-4 text-surface-600" />
-            <span className="text-surface-300 truncate max-w-[250px]">{auction.title}</span>
+            <span className="text-surface-300 font-medium truncate max-w-[280px]">{auction.title}</span>
           </nav>
         </div>
       </div>
 
       {/* Hero Header */}
-      <div className="relative overflow-hidden border-b border-surface-800">
-        <div className="absolute inset-0 bg-gradient-to-b from-surface-900/80 to-surface-950" />
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-accent-500/5 rounded-full blur-3xl" />
+      <div className="relative border-b border-surface-800/60">
+        <div className="absolute inset-0 bg-gradient-to-b from-surface-900/60 to-surface-950/80" />
         
-        <div className="relative container mx-auto px-4 py-8">
+        <div className="relative container mx-auto px-4 sm:px-6 py-8 lg:py-10">
           <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
             <div className="flex-1 min-w-0">
-              {/* Badges */}
-              <div className="flex flex-wrap items-center gap-2 mb-4">
-                <span className={getAuctionStateColor(auction.state)}>
+              {/* Status & Badges */}
+              <div className="flex flex-wrap items-center gap-2.5 mb-5">
+                <span className={`${getAuctionStateColor(auction.state)} px-3 py-1.5 text-xs font-semibold tracking-wide uppercase`}>
                   {getAuctionStateLabel(auction.state)}
                 </span>
                 {isSeller && (
-                  <span className="badge bg-surface-700/50 text-surface-300 border-surface-600/50">
-                    <User className="w-3 h-3 mr-1" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-800/80 text-surface-300 text-xs font-medium border border-surface-700/50">
+                    <User className="w-3.5 h-3.5 text-accent-500" />
                     Your Auction
                   </span>
                 )}
                 {isWinner && (
-                  <span className="badge bg-success-900/50 text-success-300 border-success-700/50">
-                    <Trophy className="w-3 h-3 mr-1" />
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-success-900/40 text-success-300 text-xs font-semibold border border-success-700/40">
+                    <Trophy className="w-3.5 h-3.5" />
                     You Won!
                   </span>
                 )}
               </div>
               
               {/* Title */}
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-surface-100 mb-3">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-surface-50 mb-4 tracking-tight">
                 {auction.title}
               </h1>
               
-              {/* Seller */}
-              <div className="flex items-center gap-2 text-surface-400">
-                <div className="w-6 h-6 rounded-full bg-surface-800 flex items-center justify-center">
-                  <User className="w-3 h-3" />
+              {/* Seller Info */}
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-surface-700 to-surface-800 border border-surface-600/50 flex items-center justify-center">
+                  <User className="w-4 h-4 text-surface-400" />
                 </div>
-                <span className="text-sm">Created by</span>
-                <span className="font-mono text-sm text-surface-300">{shortenAddress(auction.seller.toBase58())}</span>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-surface-500">Created by</span>
+                  <span className="font-mono text-surface-300 bg-surface-800/60 px-2 py-0.5 rounded">{shortenAddress(auction.seller.toBase58())}</span>
+                </div>
               </div>
             </div>
             
-            {/* Quick Actions */}
+            {/* Refresh Button */}
             <button
               onClick={refreshAuction}
-              className="btn-ghost p-2.5 rounded-lg hover:bg-surface-800"
-              title="Refresh auction"
+              className="self-start p-3 rounded-xl bg-surface-800/60 border border-surface-700/50 text-surface-400 hover:text-surface-200 hover:bg-surface-700/60 hover:border-surface-600/50 transition-all duration-200"
+              title="Refresh auction data"
             >
               <RefreshCw className="w-5 h-5" />
             </button>
@@ -255,166 +277,170 @@ export default function AuctionDetailPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
+      {/* Main Content */}
+      <div className="relative container mx-auto px-4 sm:px-6 py-8 lg:py-10">
+        <div className="grid lg:grid-cols-3 gap-6 lg:gap-8">
+          {/* Left Column - Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Description Card */}
-            <Card>
-              <CardContent className="pt-6">
-                <h3 className="text-sm font-medium text-surface-500 uppercase tracking-wide mb-3">Description</h3>
-                <p className="text-surface-300 leading-relaxed">
-                  {auction.description || "No description provided for this auction."}
-                </p>
-              </CardContent>
-            </Card>
+            {/* Description */}
+            <div className="rounded-2xl bg-gradient-to-br from-surface-900/90 to-surface-900/70 border border-surface-800/60 p-6 backdrop-blur-sm">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-surface-800/80 border border-surface-700/50 flex items-center justify-center">
+                  <FileText className="w-4 h-4 text-surface-400" />
+                </div>
+                <h3 className="text-xs font-semibold text-surface-400 uppercase tracking-wider">Description</h3>
+              </div>
+              <p className="text-surface-300 leading-relaxed">
+                {auction.description || "No description provided for this auction."}
+              </p>
+            </div>
 
             {/* Stats Grid */}
             <div className="grid sm:grid-cols-2 gap-4">
-              <Card className="bg-gradient-to-br from-surface-900 to-surface-900/50">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-accent-900/30 border border-accent-700/30 flex items-center justify-center">
-                      <Shield className="w-6 h-6 text-accent-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-surface-500 mb-1">Reserve Price</p>
-                      <p className="text-2xl font-bold text-surface-100">
-                        {formatSol(auction.reservePrice)} <span className="text-lg text-surface-400">SOL</span>
-                      </p>
-                    </div>
+              {/* Reserve Price */}
+              <div className="rounded-2xl bg-gradient-to-br from-surface-900/90 to-surface-900/70 border border-surface-800/60 p-6 backdrop-blur-sm">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-accent-900/40 to-accent-900/20 border border-accent-700/30 flex items-center justify-center">
+                    <Coins className="w-7 h-7 text-accent-400" />
                   </div>
-                </CardContent>
-              </Card>
+                  <div>
+                    <p className="text-xs font-medium text-surface-500 uppercase tracking-wider mb-1">Reserve Price</p>
+                    <p className="text-2xl font-bold text-surface-50">
+                      {formatSol(auction.reservePrice)} <span className="text-base text-surface-400 font-semibold">SOL</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-              <Card className="bg-gradient-to-br from-surface-900 to-surface-900/50">
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-purple-900/30 border border-purple-700/30 flex items-center justify-center">
-                      <Users className="w-6 h-6 text-purple-500" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-surface-500 mb-1">Sealed Bids</p>
-                      <div className="flex items-center gap-2">
-                        <p className="text-2xl font-bold text-surface-100">{auction.bidCount}</p>
-                        <Lock className="w-4 h-4 text-accent-500" />
-                      </div>
+              {/* Sealed Bids */}
+              <div className="rounded-2xl bg-gradient-to-br from-surface-900/90 to-surface-900/70 border border-surface-800/60 p-6 backdrop-blur-sm">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-900/40 to-purple-900/20 border border-purple-700/30 flex items-center justify-center">
+                    <Users className="w-7 h-7 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-surface-500 uppercase tracking-wider mb-1">Sealed Bids</p>
+                    <div className="flex items-center gap-2.5">
+                      <p className="text-2xl font-bold text-surface-50">{auction.bidCount}</p>
+                      <Lock className="w-4 h-4 text-accent-500" />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
 
-            {/* Timeline Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-accent-500" />
-                  Auction Timeline
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-1">
-                  <TimelineItem
-                    label="Started"
-                    value={formatDate(auction.startTime)}
-                    completed={now >= auction.startTime}
-                    active={isActive}
-                    icon={<Zap className="w-4 h-4" />}
-                  />
-                  <TimelineItem
-                    label={isActive ? "Ends in" : "Ended"}
-                    value={
-                      isActive ? (
-                        <Countdown endTime={auction.endTime} />
-                      ) : (
-                        formatDate(auction.endTime)
-                      )
-                    }
-                    completed={now >= auction.endTime}
-                    active={!isActive && (isClosed || isWinnerDetermined)}
-                    icon={<Clock className="w-4 h-4" />}
-                  />
-                  {(isClosed || isWinnerDetermined || isSettled) && (
-                    <TimelineItem
-                      label="Bids Processed"
-                      value={`${auction.bidsProcessed} / ${auction.bidCount}`}
-                      completed={auction.bidsProcessed >= auction.bidCount}
-                      active={isClosed && auction.bidsProcessed < auction.bidCount}
-                      icon={<TrendingUp className="w-4 h-4" />}
-                    />
-                  )}
-                  {(isWinnerDetermined || isSettled) && (
-                    <TimelineItem
-                      label="Winner Confirmed"
-                      value={
-                        <span className="font-mono">{shortenAddress(auction.winner.toBase58())}</span>
-                      }
-                      completed={true}
-                      active={isWinnerDetermined}
-                      icon={<Trophy className="w-4 h-4" />}
-                    />
-                  )}
-                  {isSettled && (
-                    <TimelineItem
-                      label="Settled"
-                      value={
-                        <span className="text-success-400 font-semibold">
-                          {formatSol(auction.winningAmount)} SOL
-                        </span>
-                      }
-                      completed={true}
-                      active={false}
-                      icon={<CheckCircle className="w-4 h-4" />}
-                    />
-                  )}
+            {/* Timeline */}
+            <div className="rounded-2xl bg-gradient-to-br from-surface-900/90 to-surface-900/70 border border-surface-800/60 p-6 backdrop-blur-sm">
+              <div className="flex items-center gap-2.5 mb-6">
+                <div className="w-8 h-8 rounded-lg bg-accent-900/30 border border-accent-700/30 flex items-center justify-center">
+                  <Clock className="w-4 h-4 text-accent-400" />
                 </div>
-              </CardContent>
-            </Card>
+                <h3 className="text-sm font-semibold text-surface-200">Auction Timeline</h3>
+              </div>
+              
+              <div className="space-y-0">
+                <TimelineItem
+                  label="Started"
+                  value={formatDate(auction.startTime)}
+                  completed={now >= auction.startTime}
+                  active={isActive}
+                  icon={<Zap className="w-4 h-4" />}
+                  isFirst
+                />
+                <TimelineItem
+                  label={isActive ? "Ends in" : "Ended"}
+                  value={
+                    isActive ? (
+                      <Countdown endTime={auction.endTime} />
+                    ) : (
+                      formatDate(auction.endTime)
+                    )
+                  }
+                  completed={now >= auction.endTime}
+                  active={!isActive && (isClosed || isWinnerDetermined)}
+                  icon={<Clock className="w-4 h-4" />}
+                />
+                {(isClosed || isWinnerDetermined || isSettled) && (
+                  <TimelineItem
+                    label="Bids Processed"
+                    value={`${auction.bidsProcessed} / ${auction.bidCount}`}
+                    completed={auction.bidsProcessed >= auction.bidCount}
+                    active={isClosed && auction.bidsProcessed < auction.bidCount}
+                    icon={<TrendingUp className="w-4 h-4" />}
+                  />
+                )}
+                {(isWinnerDetermined || isSettled) && (
+                  <TimelineItem
+                    label="Winner Confirmed"
+                    value={
+                      <span className="font-mono text-xs bg-surface-800/80 px-2 py-0.5 rounded">{shortenAddress(auction.winner.toBase58())}</span>
+                    }
+                    completed={true}
+                    active={isWinnerDetermined}
+                    icon={<Trophy className="w-4 h-4" />}
+                  />
+                )}
+                {isSettled && (
+                  <TimelineItem
+                    label="Settled"
+                    value={
+                      <span className="text-success-400 font-bold">
+                        {formatSol(auction.winningAmount)} SOL
+                      </span>
+                    }
+                    completed={true}
+                    active={false}
+                    icon={<CheckCircle className="w-4 h-4" />}
+                    isLast
+                  />
+                )}
+              </div>
+            </div>
 
-            {/* Encrypted Data Info */}
+            {/* Encrypted Bid Data */}
             {auction.highestBidHandle > 0 && !isSettled && (
-              <Card className="border-accent-800/30 bg-gradient-to-br from-accent-950/20 to-surface-900">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <EyeOff className="w-5 h-5 text-accent-500" />
-                    Encrypted Bid Data
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <span className="text-sm text-surface-500 block mb-2">Current Highest Bid Handle</span>
-                      <div className="p-4 bg-surface-800/50 rounded-xl border border-surface-700/50">
-                        <code className="text-accent-400 font-mono text-sm break-all">
-                          {auction.highestBidHandle.toString()}
-                        </code>
-                      </div>
-                    </div>
-                    {auction.currentLeader.toBase58() !== PublicKey.default.toBase58() && (
-                      <div className="flex items-center justify-between p-4 bg-surface-800/30 rounded-xl">
-                        <span className="text-sm text-surface-500">Current Leader</span>
-                        <span className="font-mono text-surface-200">
-                          {shortenAddress(auction.currentLeader.toBase58())}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-start gap-3 p-4 bg-accent-950/30 rounded-xl border border-accent-800/30">
-                      <Lock className="w-5 h-5 text-accent-500 flex-shrink-0 mt-0.5" />
-                      <p className="text-sm text-surface-400 leading-relaxed">
-                        The bid amount is encrypted using Inco&apos;s confidential computing. 
-                        It cannot be revealed until settlement, ensuring complete fairness.
-                      </p>
+              <div className="rounded-2xl bg-gradient-to-br from-accent-950/30 to-surface-900/90 border border-accent-800/30 p-6 backdrop-blur-sm">
+                <div className="flex items-center gap-2.5 mb-5">
+                  <div className="w-8 h-8 rounded-lg bg-accent-900/40 border border-accent-700/30 flex items-center justify-center">
+                    <EyeOff className="w-4 h-4 text-accent-400" />
+                  </div>
+                  <h3 className="text-sm font-semibold text-surface-200">Encrypted Bid Data</h3>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-xs font-medium text-surface-500 uppercase tracking-wider mb-2">Current Highest Bid Handle</p>
+                    <div className="p-4 bg-surface-800/50 rounded-xl border border-surface-700/40">
+                      <code className="text-accent-400 font-mono text-sm break-all leading-relaxed">
+                        {auction.highestBidHandle.toString()}
+                      </code>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                  
+                  {auction.currentLeader.toBase58() !== PublicKey.default.toBase58() && (
+                    <div className="flex items-center justify-between p-4 bg-surface-800/40 rounded-xl border border-surface-700/30">
+                      <span className="text-xs font-medium text-surface-500 uppercase tracking-wider">Current Leader</span>
+                      <span className="font-mono text-sm text-surface-200 bg-surface-700/50 px-2.5 py-1 rounded">
+                        {shortenAddress(auction.currentLeader.toBase58())}
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="flex items-start gap-3 p-4 bg-accent-950/40 rounded-xl border border-accent-800/30">
+                    <Lock className="w-5 h-5 text-accent-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-surface-400 leading-relaxed">
+                      The bid amount is encrypted using Inco&apos;s confidential computing. 
+                      It cannot be revealed until settlement, ensuring complete fairness.
+                    </p>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Bid Form (if auction is active) */}
+          {/* Right Column - Sidebar */}
+          <div className="space-y-5">
+            {/* Bid Form */}
             {canBid && (
               <BidForm
                 auctionPubkey={new PublicKey(auctionId)}
@@ -423,98 +449,96 @@ export default function AuctionDetailPage() {
               />
             )}
 
-            {/* Cannot bid notice */}
+            {/* Connect Wallet Notice */}
             {isActive && !wallet.publicKey && (
-              <Card className="border-surface-700 bg-gradient-to-br from-surface-800/50 to-surface-900">
-                <CardContent className="pt-6 text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-surface-700/50 flex items-center justify-center mx-auto mb-4">
-                    <Gavel className="w-7 h-7 text-surface-400" />
+              <div className="rounded-2xl bg-gradient-to-br from-surface-800/80 to-surface-900/90 border border-surface-700/50 p-6 backdrop-blur-sm">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-surface-700/80 to-surface-800 border border-surface-600/50 flex items-center justify-center mx-auto mb-4">
+                    <Gavel className="w-8 h-8 text-surface-400" />
                   </div>
-                  <p className="text-surface-200 font-medium mb-2">Ready to Bid?</p>
-                  <p className="text-surface-500 text-sm">
+                  <h4 className="font-semibold text-surface-200 mb-2">Ready to Bid?</h4>
+                  <p className="text-sm text-surface-500 leading-relaxed">
                     Connect your wallet to place an encrypted bid on this auction.
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
 
-            {/* Seller cannot bid */}
+            {/* Seller Cannot Bid Notice */}
             {isActive && isSeller && (
-              <Card className="border-surface-700">
-                <CardContent className="pt-6 text-center">
-                  <p className="text-surface-400 text-sm">
+              <div className="rounded-2xl bg-surface-900/70 border border-surface-800/60 p-6 backdrop-blur-sm">
+                <div className="text-center">
+                  <p className="text-sm text-surface-400 leading-relaxed">
                     As the auction creator, you cannot place bids on your own auction.
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
 
-            {/* Auction Actions (close, determine winner, finalize, settle) */}
+            {/* Auction Actions */}
             <AuctionActions
               auctionPubkey={new PublicKey(auctionId)}
               auction={auction}
               onActionComplete={refreshAuction}
             />
 
-            {/* Settled Info */}
+            {/* Settled Card */}
             {isSettled && (
-              <Card className="border-success-700/50 bg-gradient-to-br from-success-950/30 to-surface-900 overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-success-500/10 rounded-full blur-2xl" />
-                <CardContent className="pt-6 relative">
-                  <div className="text-center">
-                    <div className="w-16 h-16 rounded-2xl bg-success-900/30 flex items-center justify-center mx-auto mb-4 border border-success-700/50">
-                      <CheckCircle className="w-8 h-8 text-success-400" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-surface-100 mb-1">Auction Complete</h3>
-                    <p className="text-surface-500 text-sm mb-4">
-                      Winner: <span className="font-mono text-surface-300">{shortenAddress(auction.winner.toBase58())}</span>
-                    </p>
-                    <div className="text-3xl font-bold text-success-400">
-                      {formatSol(auction.winningAmount)} <span className="text-xl">SOL</span>
-                    </div>
+              <div className="relative rounded-2xl bg-gradient-to-br from-success-950/40 to-surface-900/90 border border-success-700/40 p-6 backdrop-blur-sm overflow-hidden">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-success-500/10 rounded-full blur-3xl" />
+                <div className="relative text-center">
+                  <div className="w-18 h-18 rounded-2xl bg-gradient-to-br from-success-900/50 to-success-900/30 border border-success-700/40 flex items-center justify-center mx-auto mb-5">
+                    <CheckCircle className="w-9 h-9 text-success-400" />
                   </div>
-                </CardContent>
-              </Card>
+                  <h3 className="text-lg font-bold text-surface-100 mb-2">Auction Complete</h3>
+                  <p className="text-sm text-surface-500 mb-4">
+                    Winner: <span className="font-mono text-surface-300 bg-surface-800/60 px-2 py-0.5 rounded">{shortenAddress(auction.winner.toBase58())}</span>
+                  </p>
+                  <div className="text-3xl font-bold text-success-400">
+                    {formatSol(auction.winningAmount)} <span className="text-lg font-semibold">SOL</span>
+                  </div>
+                </div>
+              </div>
             )}
 
-            {/* Cancelled Info */}
+            {/* Cancelled Card */}
             {isCancelled && (
-              <Card className="border-error-700/50 bg-gradient-to-br from-error-950/30 to-surface-900">
-                <CardContent className="pt-6 text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-error-900/30 flex items-center justify-center mx-auto mb-4 border border-error-700/50">
-                    <AlertCircle className="w-7 h-7 text-error-400" />
+              <div className="relative rounded-2xl bg-gradient-to-br from-error-950/40 to-surface-900/90 border border-error-700/40 p-6 backdrop-blur-sm">
+                <div className="text-center">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-error-900/50 to-error-900/30 border border-error-700/40 flex items-center justify-center mx-auto mb-4">
+                    <AlertCircle className="w-8 h-8 text-error-400" />
                   </div>
-                  <h3 className="font-semibold text-surface-100 mb-2">Auction Cancelled</h3>
-                  <p className="text-surface-500 text-sm">
+                  <h3 className="font-bold text-surface-100 mb-2">Auction Cancelled</h3>
+                  <p className="text-sm text-surface-500">
                     This auction has been cancelled by the seller.
                   </p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
 
-            {/* Privacy Info Card */}
-            <Card className="bg-surface-900/50">
-              <CardContent className="pt-6">
-                <h4 className="text-sm font-medium text-surface-300 mb-4 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-accent-500" />
-                  Privacy Guarantee
-                </h4>
-                <ul className="space-y-3 text-sm">
-                  <li className="flex items-start gap-2 text-surface-400">
-                    <Lock className="w-4 h-4 text-accent-500 flex-shrink-0 mt-0.5" />
-                    <span>All bids are encrypted end-to-end</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-surface-400">
-                    <EyeOff className="w-4 h-4 text-accent-500 flex-shrink-0 mt-0.5" />
-                    <span>Bid amounts hidden from everyone</span>
-                  </li>
-                  <li className="flex items-start gap-2 text-surface-400">
-                    <CheckCircle className="w-4 h-4 text-accent-500 flex-shrink-0 mt-0.5" />
-                    <span>Only winner&apos;s bid revealed at settlement</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
+            {/* Privacy Guarantee */}
+            <div className="rounded-2xl bg-surface-900/70 border border-surface-800/60 p-5 backdrop-blur-sm">
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-7 h-7 rounded-lg bg-accent-900/30 border border-accent-700/30 flex items-center justify-center">
+                  <Shield className="w-3.5 h-3.5 text-accent-400" />
+                </div>
+                <h4 className="text-xs font-semibold text-surface-300 uppercase tracking-wider">Privacy Guarantee</h4>
+              </div>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3 text-sm">
+                  <Lock className="w-4 h-4 text-accent-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-surface-400">All bids are encrypted end-to-end</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm">
+                  <EyeOff className="w-4 h-4 text-accent-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-surface-400">Bid amounts hidden from everyone</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm">
+                  <CheckCircle className="w-4 h-4 text-accent-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-surface-400">Only winner&apos;s bid revealed at settlement</span>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -529,22 +553,35 @@ const TimelineItem: FC<{
   completed: boolean;
   active?: boolean;
   icon?: React.ReactNode;
-}> = ({ label, value, completed, active = false, icon }) => (
-  <div className="flex items-center gap-4 py-3">
+  isFirst?: boolean;
+  isLast?: boolean;
+}> = ({ label, value, completed, active = false, icon, isFirst = false, isLast = false }) => (
+  <div className="relative flex items-center gap-4 py-4">
+    {/* Vertical Line */}
+    {!isFirst && (
+      <div className={`absolute left-5 -top-4 w-0.5 h-4 ${completed ? 'bg-success-700/50' : 'bg-surface-700/50'}`} />
+    )}
+    {!isLast && (
+      <div className={`absolute left-5 top-14 w-0.5 h-4 ${completed ? 'bg-success-700/50' : 'bg-surface-700/50'}`} />
+    )}
+    
+    {/* Icon */}
     <div
-      className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all ${
+      className={`relative z-10 w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
         active
-          ? "bg-accent-900/50 text-accent-400 border border-accent-700/50 ring-4 ring-accent-500/20"
+          ? "bg-gradient-to-br from-accent-800/60 to-accent-900/40 text-accent-400 border border-accent-600/50 shadow-lg shadow-accent-500/20"
           : completed
-            ? "bg-success-900/50 text-success-400 border border-success-700/50"
-            : "bg-surface-800/50 text-surface-500 border border-surface-700/50"
+            ? "bg-gradient-to-br from-success-800/50 to-success-900/30 text-success-400 border border-success-700/40"
+            : "bg-surface-800/60 text-surface-500 border border-surface-700/40"
       }`}
     >
       {icon}
     </div>
+    
+    {/* Content */}
     <div className="flex-1 flex items-center justify-between min-w-0">
-      <span className="text-surface-400 text-sm">{label}</span>
-      <span className={`text-sm font-medium ${completed ? "text-surface-200" : "text-surface-500"}`}>
+      <span className="text-sm text-surface-400">{label}</span>
+      <span className={`text-sm font-medium ${active ? "text-accent-400" : completed ? "text-surface-200" : "text-surface-500"}`}>
         {value}
       </span>
     </div>
