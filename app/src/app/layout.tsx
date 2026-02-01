@@ -11,6 +11,9 @@ export const metadata: Metadata = {
   description:
     "A sealed-bid auction protocol powered by Inco Lightning confidential computing. Place encrypted bids that no one can see.",
   keywords: ["solana", "auction", "sealed-bid", "confidential", "inco", "crypto"],
+  icons: {
+    icon: "/shadow.svg",
+  },
 };
 
 export default function RootLayout({

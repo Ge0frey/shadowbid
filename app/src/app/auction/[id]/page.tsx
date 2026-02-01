@@ -412,7 +412,7 @@ export default function AuctionDetailPage() {
                     <p className="text-xs font-medium text-surface-500 uppercase tracking-wider mb-2">Current Highest Bid Handle</p>
                     <div className="p-4 bg-surface-800/50 rounded-xl border border-surface-700/40">
                       <code className="text-accent-400 font-mono text-sm break-all leading-relaxed">
-                        {auction.highestBidHandle.toString()}
+                        {shortenAddress(auction.highestBidHandle.toString(), 8)}
                       </code>
                     </div>
                   </div>
