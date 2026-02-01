@@ -478,11 +478,6 @@ const FeaturesSection: FC = () => {
 const UseCasesSection: FC = () => {
   const useCases = [
     {
-      icon: Palette,
-      title: "NFT Auctions",
-      description: "Sell digital art and collectibles without revealing bidder strategies or enabling sniping.",
-    },
-    {
       icon: Building2,
       title: "Real Estate",
       description: "Property sales where fair market value is determined through genuine sealed bidding.",
@@ -516,7 +511,7 @@ const UseCasesSection: FC = () => {
         </div>
 
         {/* Use Cases Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
           {useCases.map((useCase) => (
             <div
               key={useCase.title}
