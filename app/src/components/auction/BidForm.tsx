@@ -4,8 +4,7 @@ import { FC, useState } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import toast from "react-hot-toast";
-import { Loader2, Lock, ShieldCheck, AlertCircle } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../ui/Card";
+import { Loader2, Lock, ShieldCheck } from "lucide-react";
 import { getProgram } from "@/lib/program";
 import { findBidPda } from "@/lib/pda";
 import { encryptBid } from "@/lib/encryption";
@@ -99,21 +98,25 @@ export const BidForm: FC<BidFormProps> = ({
   };
 
   return (
-    <Card className="border-accent-800/30">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Lock className="w-5 h-5 text-accent-500" />
-          Place Sealed Bid
-        </CardTitle>
-        <CardDescription>
+    <div className="rounded-2xl bg-gradient-to-br from-surface-900/90 to-surface-900/70 border border-accent-800/30 backdrop-blur-sm overflow-hidden">
+      {/* Header */}
+      <div className="px-6 pt-6 pb-4">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-accent-800/50 to-accent-900/30 border border-accent-700/40 flex items-center justify-center">
+            <Lock className="w-4.5 h-4.5 text-accent-400" />
+          </div>
+          <h3 className="text-base font-bold text-surface-100">Place Sealed Bid</h3>
+        </div>
+        <p className="text-sm text-surface-400 leading-relaxed">
           Your bid will be encrypted. No one can see the amount until settlement.
-        </CardDescription>
-      </CardHeader>
+        </p>
+      </div>
 
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Form */}
+      <div className="px-6 pb-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="bid" className="label">
+            <label htmlFor="bid" className="block text-xs font-semibold text-surface-400 uppercase tracking-wider mb-2">
               Bid Amount (SOL)
             </label>
             <div className="relative">
@@ -125,50 +128,53 @@ export const BidForm: FC<BidFormProps> = ({
                 value={bidAmount}
                 onChange={(e) => setBidAmount(e.target.value)}
                 placeholder={`Min: ${minBid} SOL`}
-                className="input pr-16"
+                className="w-full bg-surface-800/60 border border-surface-700/50 rounded-xl px-4 py-3.5 text-surface-100 placeholder-surface-500 transition-all duration-200 hover:border-surface-600/50 focus:outline-none focus:ring-2 focus:ring-accent-500/40 focus:border-accent-600/50 pr-16"
                 disabled={loading}
                 required
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-surface-500 text-sm">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-surface-400 text-sm font-medium">
                 SOL
               </span>
             </div>
-            <p className="text-surface-600 text-xs mt-2">
-              Reserve price: {formatSol(reservePrice)} SOL
+            <p className="text-surface-500 text-xs mt-2.5">
+              Reserve price: <span className="text-surface-300 font-medium">{formatSol(reservePrice)} SOL</span>
             </p>
           </div>
 
-          {/* Security Info */}
-          <div className="flex items-start gap-3 text-sm bg-success-950/30 rounded-lg p-4 border border-success-800/30">
-            <ShieldCheck className="w-5 h-5 text-success-500 flex-shrink-0 mt-0.5" />
+          {/* Security Badge */}
+          <div className="flex items-start gap-3 bg-success-950/30 rounded-xl p-4 border border-success-800/30">
+            <div className="w-8 h-8 rounded-lg bg-success-900/40 border border-success-700/30 flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="w-4 h-4 text-success-400" />
+            </div>
             <div>
-              <p className="font-medium text-success-300 mb-1">End-to-end encrypted</p>
-              <p className="text-surface-400">
+              <p className="text-sm font-semibold text-success-300 mb-0.5">End-to-end encrypted</p>
+              <p className="text-xs text-surface-400 leading-relaxed">
                 Your bid is encrypted using Inco&apos;s confidential computing.
                 Only you will know your bid amount.
               </p>
             </div>
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading || !wallet.connected}
-            className="btn-primary w-full btn-lg"
+            className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-accent-600 to-accent-500 text-white font-semibold text-sm shadow-lg shadow-accent-500/20 hover:from-accent-500 hover:to-accent-400 hover:shadow-accent-500/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
           >
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                {encrypting ? "Encrypting..." : "Submitting..."}
+                <span>{encrypting ? "Encrypting..." : "Submitting..."}</span>
               </>
             ) : (
               <>
                 <Lock className="w-4 h-4" />
-                Place Encrypted Bid
+                <span>Place Encrypted Bid</span>
               </>
             )}
           </button>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
