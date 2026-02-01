@@ -27,17 +27,17 @@ import {
   Cpu,
   Layers
 } from "lucide-react";
+import { useModal } from "@/components/providers/ModalProvider";
 
 export default function LandingPage() {
   const { connected } = useWallet();
+  const { openCreateAuction } = useModal();
 
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <HeroSection connected={connected} />
+      <HeroSection connected={connected} onCreateAuction={openCreateAuction} />
 
-      {/* Trust Indicators */}
-      <TrustIndicators />
 
       {/* How It Works Section */}
       <HowItWorksSection />
@@ -55,7 +55,7 @@ export default function LandingPage() {
       <FAQSection />
 
       {/* CTA Section */}
-      <CTASection connected={connected} />
+      <CTASection connected={connected} onCreateAuction={openCreateAuction} />
     </div>
   );
 }
@@ -125,7 +125,7 @@ const EncryptionVisual: FC = () => {
 };
 
 // ==================== HERO SECTION ====================
-const HeroSection: FC<{ connected: boolean }> = ({ connected }) => (
+const HeroSection: FC<{ connected: boolean; onCreateAuction: () => void }> = ({ connected, onCreateAuction }) => (
   <section className="relative overflow-hidden">
     {/* Complex background */}
     <div className="absolute inset-0 bg-gradient-to-b from-surface-900/80 via-surface-950 to-surface-950" />
@@ -190,9 +190,9 @@ const HeroSection: FC<{ connected: boolean }> = ({ connected }) => (
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             {connected ? (
-              <Link href="/auction/create" className="btn-secondary btn-lg">
+              <button onClick={onCreateAuction} className="btn-secondary btn-lg">
                 Create Auction
-              </Link>
+              </button>
             ) : (
               <span className="text-surface-500 text-sm">
                 Connect wallet to create auctions
@@ -211,34 +211,6 @@ const HeroSection: FC<{ connected: boolean }> = ({ connected }) => (
     </div>
   </section>
 );
-
-// ==================== TRUST INDICATORS ====================
-const TrustIndicators: FC = () => {
-  const stats = [
-    { label: "Encryption Standard", value: "AES-256", icon: Lock },
-    { label: "Bid Privacy", value: "100%", icon: EyeOff },
-    { label: "Settlement", value: "Trustless", icon: CheckCircle },
-    { label: "MEV Protection", value: "Full", icon: Shield },
-  ];
-
-  return (
-    <section className="border-y border-surface-800/50 bg-surface-900/30">
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
-          {stats.map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-surface-800/50 mb-3">
-                <stat.icon className="w-5 h-5 text-accent-500" />
-              </div>
-              <div className="text-2xl font-bold text-surface-100 mb-1">{stat.value}</div>
-              <div className="text-sm text-surface-500">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
 
 // ==================== HOW IT WORKS SECTION ====================
 const HowItWorksSection: FC = () => {
@@ -646,7 +618,7 @@ const FAQItem: FC<{ question: string; answer: string }> = ({ question, answer })
 };
 
 // ==================== CTA SECTION ====================
-const CTASection: FC<{ connected: boolean }> = ({ connected }) => (
+const CTASection: FC<{ connected: boolean; onCreateAuction: () => void }> = ({ connected, onCreateAuction }) => (
   <section className="section-alt">
     <div className="container mx-auto px-4">
       <div className="max-w-4xl mx-auto">
@@ -660,11 +632,6 @@ const CTASection: FC<{ connected: boolean }> = ({ connected }) => (
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
           
           <div className="relative p-10 md:p-14 text-center">
-            {/* Icon */}
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-accent-500 to-accent-700 mb-6">
-              <Gavel className="w-8 h-8 text-white" />
-            </div>
-
             <h2 className="heading-2 text-surface-100 mb-4">
               Ready to Bid Privately?
             </h2>
@@ -679,9 +646,9 @@ const CTASection: FC<{ connected: boolean }> = ({ connected }) => (
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               {connected && (
-                <Link href="/auction/create" className="btn-secondary btn-lg">
+                <button onClick={onCreateAuction} className="btn-secondary btn-lg">
                   Create Your Auction
-                </Link>
+                </button>
               )}
             </div>
 
