@@ -1,32 +1,27 @@
 "use client";
 
-import { useWallet } from "@solana/wallet-adapter-react";
-import Link from "next/link";
-import { Lock, ArrowLeft } from "lucide-react";
-import { CreateAuctionForm } from "@/components/auction/CreateAuctionForm";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { useModal } from "@/components/providers/ModalProvider";
 
 export default function CreateAuctionPage() {
-  const { connected } = useWallet();
+  const router = useRouter();
+  const { openCreateAuction } = useModal();
 
-  if (!connected) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center px-4">
-        <div className="w-16 h-16 rounded-full bg-surface-800 flex items-center justify-center mb-6">
-          <Lock className="w-8 h-8 text-surface-500" />
-        </div>
-        <h1 className="heading-3 text-surface-100 mb-2 text-center">
-          Connect Your Wallet
-        </h1>
-        <p className="text-muted text-center max-w-md mb-6">
-          Please connect your Solana wallet to create an auction.
-        </p>
-        <Link href="/auctions" className="btn-secondary">
-          <ArrowLeft className="w-4 h-4" />
-          Browse Auctions
-        </Link>
+  useEffect(() => {
+    // Open the modal and redirect to auctions page
+    openCreateAuction();
+    router.replace("/auctions");
+  }, [openCreateAuction, router]);
+
+  // Show a loading state while redirecting
+  return (
+    <div className="min-h-[80vh] flex flex-col items-center justify-center">
+      <div className="w-16 h-16 rounded-2xl bg-surface-800/50 flex items-center justify-center mb-4">
+        <Loader2 className="w-8 h-8 animate-spin text-accent-500" />
       </div>
-    );
-  }
-
-  return <CreateAuctionForm />;
+      <p className="text-surface-400">Opening create auction...</p>
+    </div>
+  );
 }
