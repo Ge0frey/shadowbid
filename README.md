@@ -1,3 +1,8 @@
+### VIDEO DEMO WITH COMMENTARY: https://youtu.be/kt3_NVAyZpo
+### LIVE DEPLOYED APP: https://shadow-bid.vercel.app/
+
+---
+
 # ShadowBid
 
 A sealed-bid auction protocol built on Solana, leveraging Inco Lightning for confidential computing. ShadowBid enables truly private auctions where bid amounts remain encrypted throughout the entire auction lifecycle, ensuring fairness, preventing front-running, and preserving bidder privacy.
