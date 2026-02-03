@@ -27,7 +27,7 @@ export const Footer: FC = () => {
               <span>&copy; {new Date().getFullYear()} ShadowBid</span>
               <span>•</span>
               <span className="flex items-center gap-1">
-                Built with <Heart className="w-3 h-3 text-error-400" /> for Inco Privacy Hackathon
+                Built with <Heart className="w-3 h-3 text-error-400" /> 
               </span>
             </div>
             
@@ -107,7 +107,7 @@ export const Footer: FC = () => {
                 <Github className="w-4 h-4" />
               </a>
               <a
-                href="https://twitter.com"
+                href="https://x.com/Ge0frey_"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-xl bg-surface-800/50 border border-surface-700/50 flex items-center justify-center text-surface-400 hover:text-surface-100 hover:bg-surface-800 hover:border-surface-600 transition-all"
@@ -271,7 +271,7 @@ export const Footer: FC = () => {
               <span>&copy; {new Date().getFullYear()} ShadowBid.</span>
               <span className="hidden sm:inline">•</span>
               <span className="flex items-center gap-1">
-                Built with <Heart className="w-3.5 h-3.5 text-error-400" /> for Inco Privacy Hackathon
+                Built with <Heart className="w-3.5 h-3.5 text-error-400" /> 
               </span>
             </div>
             
